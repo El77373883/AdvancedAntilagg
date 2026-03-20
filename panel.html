@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AdrianPanel</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Inter","Segoe UI",sans-serif;background:#f3f4f6;color:#1f2937;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* AUTH */
+.auth-bg{position:fixed;inset:0;background:#0d1117;display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;overflow-y:auto;}
+.auth-box{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:36px 40px;width:100%;max-width:430px;margin:auto;}
+.auth-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:26px;}
+.auth-logo-text{color:#fff;font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+.auth-title{color:#e6edf3;font-size:16px;font-weight:600;text-align:center;}
+.auth-sub{color:#6e7681;font-size:13px;text-align:center;margin:4px 0 22px;}
+.auth-field{margin-bottom:13px;}
+.auth-label{display:block;color:#c9d1d9;font-size:13px;font-weight:500;margin-bottom:5px;}
+.auth-input{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-family:inherit;font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s;}
+.auth-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+.auth-input::placeholder{color:#484f58;}
+.auth-check-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.auth-check-row input[type=checkbox]{width:15px;height:15px;accent-color:#2563eb;cursor:pointer;flex-shrink:0;}
+.auth-check-row label{color:#8b949e;font-size:12px;cursor:pointer;user-select:none;}
+.auth-btn{width:100%;background:#2563eb;border:none;border-radius:6px;color:#fff;font-family:inherit;font-size:14px;font-weight:600;padding:10px;cursor:pointer;transition:background .15s;}
+.auth-btn:hover{background:#1d4ed8;}
+.auth-link{color:#58a6ff;font-size:12px;cursor:pointer;background:none;border:none;font-family:inherit;}
+.auth-link:hover{text-decoration:underline;}
+.auth-links-row{display:flex;justify-content:space-between;margin-top:13px;gap:8px;}
+.auth-err{background:#1a0a0a;border:1px solid #f85149;border-radius:5px;color:#f85149;font-size:12px;padding:8px 12px;margin-bottom:12px;display:none;}
+.auth-suc{background:#0a1a0a;border:1px solid #3fb950;border-radius:5px;color:#3fb950;font-size:12px;padding:8px 12px;margin-bottom:12px;display:none;}
+
+/* TOPBAR */
+.topbar{height:52px;background:#1a1d23;border-bottom:1px solid #2d3139;display:none;align-items:center;flex-shrink:0;z-index:50;}
+.topbar-logo{display:flex;align-items:center;gap:9px;padding:0 18px;border-right:1px solid #2d3139;height:100%;text-decoration:none;}
+.topbar-logo-text{color:#fff;font-size:15px;font-weight:800;letter-spacing:-0.3px;}
+.hamburger{background:none;border:none;cursor:pointer;padding:0 15px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.hamburger span{display:block;width:20px;height:2px;background:#9ca3af;border-radius:2px;transition:background .2s;}
+.hamburger:hover span{background:#fff;}
+.tb-bc{padding:0 15px;display:flex;align-items:center;gap:5px;font-size:13px;color:#6b7280;border-left:1px solid #2d3139;}
+.tb-bc .sep{color:#374151;}.tb-bc .cur{color:#d1d5db;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 15px;}
+.status-pill{display:flex;align-items:center;gap:6px;background:#111827;border:1px solid #374151;border-radius:5px;padding:5px 11px;font-size:12px;color:#d1d5db;cursor:pointer;white-space:nowrap;}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sdot.on{background:#22c55e;box-shadow:0 0 6px #22c55e88;}
+.sdot.off{background:#ef4444;box-shadow:0 0 6px #ef444488;}
+.sdot.pinging{background:#f59e0b;box-shadow:0 0 6px #f59e0b88;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.btn{border:none;border-radius:5px;font-family:inherit;font-size:13px;font-weight:500;padding:6px 14px;cursor:pointer;transition:opacity .15s;line-height:20px;white-space:nowrap;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:#2563eb;color:#fff;}.btn-red{background:#dc2626;color:#fff;}.btn-amber{background:#d97706;color:#fff;}.btn-green{background:#16a34a;color:#fff;}.btn-ghost{background:#fff;border:1px solid #d1d5db;color:#374151;}
+.btn-sm{font-size:12px;padding:4px 12px;}
+.xs{font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.xs:hover{opacity:.8;}
+.xs-ghost{background:#fff;border-color:#d1d5db;color:#374151;}
+.xs-red{background:#fee2e2;border-color:#fecaca;color:#991b1b;}
+.xs-amber{background:#fef3c7;border-color:#fde68a;color:#92400e;}
+.xs-green{background:#dcfce7;border-color:#bbf7d0;color:#166534;}
+.xs-blue{background:#dbeafe;border-color:#bfdbfe;color:#1d4ed8;}
+.xs-purple{background:#ede9fe;border-color:#ddd6fe;color:#5b21b6;}
+.avatar-wrap{position:relative;}
+.avatar-btn{width:32px;height:32px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;}
+.user-dd{position:absolute;top:42px;right:0;background:#1a1d23;border:1px solid #2d3139;border-radius:7px;width:210px;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:200;display:none;overflow:hidden;}
+.user-dd.open{display:block;}
+.user-dd-head{padding:12px 16px;border-bottom:1px solid #2d3139;}
+.user-dd-name{color:#e5e7eb;font-size:13px;font-weight:600;}
+.user-dd-role{margin-top:4px;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:#9ca3af;font-size:13px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:background .1s;}
+.dd-item:hover{background:#23272f;color:#fff;}
+.dd-item.danger{color:#f85149;}.dd-item.danger:hover{background:#1a0a0a;}
+
+/* DRAWER */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;top:0;left:0;height:100vh;width:255px;background:#1a1d23;z-index:101;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .25s ease;border-right:1px solid #2d3139;box-shadow:4px 0 32px rgba(0,0,0,.5);}
+.drawer.open{transform:translateX(0);}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;border-bottom:1px solid #2d3139;flex-shrink:0;}
+.drawer-head-left{display:flex;align-items:center;gap:9px;}
+.drawer-head span{color:#e5e7eb;font-size:14px;font-weight:700;}
+.drawer-x{background:none;border:none;color:#6b7280;cursor:pointer;font-size:20px;line-height:1;}
+.drawer-x:hover{color:#fff;}
+.drawer-body{flex:1;overflow-y:auto;padding:8px;}
+.d-sec{color:#4b5563;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:12px 12px 4px;font-weight:700;}
+.d-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:5px;margin-bottom:1px;color:#8b949e;font-size:13px;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;}
+.d-item:hover{background:#23272f;color:#d1d5db;}
+.d-item.active{background:rgba(37,99,235,.15);color:#60a5fa;}
+.d-item svg{flex-shrink:0;width:15px;height:15px;opacity:.75;}
+.d-item.active svg{opacity:1;}
+.d-count{margin-left:auto;background:#374151;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;}
+.drawer-footer{padding:10px;border-top:1px solid #2d3139;flex-shrink:0;}
+.srv-pill{display:flex;align-items:center;gap:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;cursor:pointer;transition:border-color .15s;}
+.srv-pill:hover{border-color:#2563eb;}
+.srv-pill-name{color:#e5e7eb;font-size:12px;font-weight:600;}
+.srv-pill-meta{color:#6b7280;font-size:10px;margin-top:1px;}
+
+/* PAGE */
+.page-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:13px 26px;flex-shrink:0;display:none;}
+.page-header .sub{color:#9ca3af;font-size:12px;margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.page-header h1{color:#111827;font-size:18px;font-weight:700;}
+.tab-strip{background:#fff;border-bottom:1px solid #e5e7eb;display:none;padding:0 26px;flex-shrink:0;overflow-x:auto;}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:#6b7280;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;padding:12px 15px;white-space:nowrap;margin-bottom:-1px;transition:color .15s,border-color .15s;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:600;}
+.main{flex:1;overflow-y:auto;padding:22px 26px;display:none;flex-direction:column;gap:16px;}
+
+/* ALERTS */
+.alert{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-radius:6px;font-size:13px;font-weight:500;gap:10px;}
+.alert.success{background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;}
+.alert.warning{background:#fef3c7;border:1px solid #fde68a;color:#92400e;}
+.alert.error{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;}
+.alert.info{background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;}
+.alert-x{background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;opacity:.6;flex-shrink:0;}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px 18px;}
+.stat-label{color:#6b7280;font-size:12px;margin-bottom:5px;}
+.stat-value{color:#111827;font-size:21px;font-weight:700;line-height:1;}
+.stat-sub{color:#9ca3af;font-size:12px;margin-top:4px;}
+.prog-track{background:#e5e7eb;border-radius:4px;height:6px;margin-top:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.info-strip{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:13px 18px;display:flex;flex-wrap:wrap;}
+.ii{padding:4px 22px 4px 0;}
+.ii-k{color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:.6px;}
+.ii-v{color:#111827;font-size:13px;font-weight:600;margin-top:2px;}
+
+/* CARDS / TABLES */
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;}
+.card-head{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.card-title{color:#374151;font-size:13px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:#f9fafb;}
+th{padding:8px 18px;text-align:left;color:#6b7280;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid #e5e7eb;white-space:nowrap;}
+td{padding:10px 18px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#fafafa;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;line-height:18px;}
+.b-green{background:#dcfce7;color:#166534;}.b-red{background:#fee2e2;color:#991b1b;}.b-yellow{background:#fef3c7;color:#92400e;}.b-gray{background:#f3f4f6;color:#6b7280;}.b-blue{background:#dbeafe;color:#1d4ed8;}.b-purple{background:#ede9fe;color:#5b21b6;}.b-orange{background:#ffedd5;color:#9a3412;}
+
+/* CONSOLE */
+.console-wrap{display:flex;flex-direction:column;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;height:390px;}
+.console-head{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:9px 15px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.console-title{color:#374151;font-size:13px;font-weight:600;}
+.console-addr{color:#9ca3af;font-size:12px;}
+.console-body{flex:1;background:#0d1117;overflow-y:auto;padding:11px 14px;font-family:"SFMono-Regular","Consolas",monospace;font-size:12px;line-height:20px;}
+.log-row{display:flex;gap:8px;margin-bottom:1px;}
+.log-t{color:#4b5563;min-width:56px;flex-shrink:0;}
+.log-INFO{color:#3fb950;min-width:52px;flex-shrink:0;}.log-WARN{color:#fbbf24;min-width:52px;flex-shrink:0;}.log-ERROR{color:#f87171;min-width:52px;flex-shrink:0;}.log-CMD{color:#60a5fa;min-width:52px;flex-shrink:0;}
+.log-m-INFO{color:#c9d1d9;}.log-m-WARN{color:#fbbf24;}.log-m-ERROR{color:#f87171;}.log-m-CMD{color:#93c5fd;}
+.con-in-row{display:flex;background:#161b22;border-top:1px solid #30363d;}
+.con-in{flex:1;background:transparent;border:none;outline:none;color:#c9d1d9;font-family:"SFMono-Regular","Consolas",monospace;font-size:12px;padding:10px 13px;}
+.con-in::placeholder{color:#4b5563;}
+.con-send{background:#2563eb;border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:600;padding:0 18px;cursor:pointer;}
+.con-send:hover{background:#1d4ed8;}
+
+/* PLUGINS */
+.pg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;}
+.pg-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:9px;transition:box-shadow .15s;}
+.pg-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);}
+.pg-name{color:#111827;font-size:14px;font-weight:700;}
+.pg-author{color:#9ca3af;font-size:11px;margin-top:1px;}
+.pg-desc{color:#4b5563;font-size:12px;line-height:17px;flex:1;}
+
+/* SETTINGS */
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.f-group{display:flex;flex-direction:column;gap:4px;}
+.f-label{color:#374151;font-size:13px;font-weight:500;}
+.f-hint{color:#9ca3af;font-size:11px;}
+.f-input,.f-select{background:#fff;border:1px solid #d1d5db;border-radius:5px;color:#111827;font-family:inherit;font-size:13px;padding:8px 11px;outline:none;width:100%;transition:border-color .15s;}
+.f-input:focus,.f-select:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid #f3f4f6;}
+.tog-lbl{color:#374151;font-size:13px;font-weight:500;}
+.tog-desc{color:#9ca3af;font-size:12px;margin-top:1px;}
+.tog{width:42px;height:23px;border-radius:12px;position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0;}
+.tog.on{background:#2563eb;}.tog.off{background:#d1d5db;}
+.tog-k{width:17px;height:17px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.tog.on .tog-k{left:22px;}.tog.off .tog-k{left:3px;}
+
+/* ADMIN */
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:13px;}
+.adm-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:18px;}
+.adm-num{font-size:26px;font-weight:700;color:#111827;}
+.adm-lbl{font-size:12px;color:#6b7280;margin-top:3px;}
+.adm-note{font-size:11px;color:#16a34a;margin-top:4px;}
+.sec-head{color:#111827;font-size:15px;font-weight:700;margin-bottom:3px;}
+.sec-sub{color:#6b7280;font-size:12px;margin-bottom:14px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:20px;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#fff;border-radius:10px;width:100%;overflow:hidden;transform:scale(.96);transition:transform .2s;max-height:90vh;display:flex;flex-direction:column;}
+.modal-overlay.open .modal-box{transform:scale(1);}
+.sm{max-width:420px;}.md{max-width:540px;}.lg{max-width:680px;}
+.modal-head{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{color:#111827;font-size:14px;font-weight:700;}
+.modal-x{background:none;border:none;color:#9ca3af;font-size:22px;cursor:pointer;line-height:1;}
+.modal-x:hover{color:#374151;}
+.modal-body{padding:18px;overflow-y:auto;flex:1;}
+.modal-footer{padding:12px 18px;border-top:1px solid #e5e7eb;display:flex;gap:8px;justify-content:flex-end;background:#f9fafb;flex-shrink:0;}
+.m-field{margin-bottom:13px;}
+.m-label{display:block;color:#374151;font-size:13px;font-weight:500;margin-bottom:5px;}
+.m-hint{color:#9ca3af;font-size:11px;margin-top:3px;}
+.m-input,.m-select,.m-textarea{width:100%;background:#fff;border:1px solid #d1d5db;border-radius:5px;color:#111827;font-family:inherit;font-size:13px;padding:8px 11px;outline:none;transition:border-color .15s;}
+.m-input:focus,.m-select:focus,.m-textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.m-textarea{resize:vertical;min-height:65px;}
+.m-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.m-section{color:#374151;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 9px;padding-bottom:7px;border-bottom:1px solid #f3f4f6;}
+.conn-result{display:flex;align-items:center;gap:9px;padding:10px 13px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;margin-top:12px;font-size:13px;display:none;}
+.upload-zone{border:2px dashed #d1d5db;border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;}
+.upload-zone:hover{border-color:#2563eb;background:#eff6ff;}
+.upload-zone p{color:#6b7280;font-size:13px;margin-top:7px;}
+.upload-zone strong{color:#2563eb;}
+.srv-card{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;margin-bottom:9px;cursor:pointer;transition:border-color .15s;}
+.srv-card:hover{border-color:#2563eb;}
+.srv-card.active-s{border-color:#2563eb;background:#eff6ff;}
+.srv-icon{width:34px;height:34px;border-radius:7px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.srv-name{color:#111827;font-size:13px;font-weight:700;}
+.srv-meta{color:#9ca3af;font-size:11px;margin-top:1px;}
+.sub-strip{display:flex;border-bottom:1px solid #e5e7eb;background:#fff;border-radius:8px 8px 0 0;overflow:hidden;margin-bottom:-1px;}
+.sub-strip .tab-btn{border-radius:0;padding:10px 14px;}
+
+.role-creator{background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.role-user{background:#1e3a5f22;color:#60a5fa;border:1px solid #2563eb44;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.p-row{display:flex;align-items:center;gap:9px;}
+.p-av{width:27px;height:27px;border-radius:5px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ping-green{color:#16a34a;font-weight:700;}.ping-yellow{color:#d97706;font-weight:700;}.ping-red{color:#dc2626;font-weight:700;}
+.empty{text-align:center;padding:36px 20px;color:#9ca3af;font-size:13px;}
+.ftp-info{background:#0d1117;border-radius:6px;padding:13px 15px;font-family:monospace;font-size:12px;color:#c9d1d9;line-height:23px;}
+.ftp-info .k{color:#60a5fa;}
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px;}
+.console-body::-webkit-scrollbar-thumb{background:#30363d;}
+@media(max-width:900px){.stat-grid{grid-template-columns:1fr 1fr;}.s-grid,.m-row{grid-template-columns:1fr;}}
+@media(max-width:600px){.stat-grid{grid-template-columns:1fr;}.main{padding:14px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH ═══ -->
+<div class="auth-bg" id="authBg">
+  <div class="auth-box" id="boxLogin">
+    <div class="auth-logo">
+      <svg width="36" height="36" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 4C20 4 10 12 10 24c0 6 2 10 5 13L8 52l12-4c3 2 7 3 12 3 14 0 24-9 24-21S46 4 32 4z" fill="#2563eb" opacity=".15"/>
+        <path d="M14 20 C12 24 12 30 16 34 L12 48 L24 42 C27 44 29 45 32 45 C44 45 54 37 54 27 C54 17 44 8 32 8 C23 8 16 13 14 20Z" fill="#1d4ed8"/>
+        <path d="M22 26 C22 22 26 19 30 19 L34 19 C38 19 42 22 42 26 C42 30 38 34 34 35 L34 39 L30 39 L30 35 C26 34 22 30 22 26Z" fill="#fff" opacity=".9"/>
+        <circle cx="28" cy="25" r="3" fill="#1d4ed8"/>
+        <circle cx="36" cy="25" r="3" fill="#1d4ed8"/>
+        <path d="M16 18 L10 12 L18 16Z" fill="#60a5fa"/>
+        <path d="M48 18 L54 12 L46 16Z" fill="#60a5fa"/>
+        <path d="M22 36 L16 44 L26 40Z" fill="#3b82f6" opacity=".7"/>
+        <path d="M42 36 L48 44 L38 40Z" fill="#3b82f6" opacity=".7"/>
+      </svg>
+      <span class="auth-logo-text">AdrianPanel</span>
+    </div>
+    <p class="auth-title">Sign in to your account</p>
+    <p class="auth-sub">Manage your Minecraft server</p>
+    <div class="auth-err" id="loginErr"></div>
+    <div class="auth-field"><label class="auth-label">Username</label><input class="auth-input" id="lUser" placeholder="Username"/></div>
+    <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="lPass" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="auth-check-row"><input type="checkbox" id="chkRem"/><label for="chkRem">Remember my username and password</label></div>
+    <button class="auth-btn" onclick="doLogin()">Sign In</button>
+    <div class="auth-links-row"><button class="auth-link" onclick="showAuth('recover')">Forgot password or username?</button><button class="auth-link" onclick="showAuth('register')">Create account</button></div>
+  </div>
+
+  <div class="auth-box hidden" id="boxRegister">
+    <div class="auth-logo"><svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M14 20C12 24 12 30 16 34L12 48l12-4c3 2 5 3 8 3 12 0 22-8 22-18S44 8 32 8c-9 0-16 5-18 12z" fill="#1d4ed8"/><path d="M22 26c0-4 4-7 8-7h4c4 0 8 3 8 7s-4 8-8 9v4h-4v-4c-4-1-8-5-8-9z" fill="#fff" opacity=".9"/><circle cx="28" cy="25" r="3" fill="#1d4ed8"/><circle cx="36" cy="25" r="3" fill="#1d4ed8"/></svg><span class="auth-logo-text">AdrianPanel</span></div>
+    <p class="auth-title">Create an account</p><p class="auth-sub">Join the server panel</p>
+    <div class="auth-err" id="regErr"></div><div class="auth-suc" id="regSuc"></div>
+    <div class="auth-field"><label class="auth-label">Username</label><input class="auth-input" id="rUser" placeholder="Choose a username"/></div>
+    <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="rEmail" type="email" placeholder="your@email.com"/></div>
+    <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="rPass" type="password" placeholder="Choose a password"/></div>
+    <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="rPass2" type="password" placeholder="Repeat your password" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+    <div class="auth-check-row"><input type="checkbox" id="chkRemReg"/><label for="chkRemReg">Remember credentials after login</label></div>
+    <button class="auth-btn" onclick="doRegister()">Create Account</button>
+    <button class="auth-link" style="display:block;margin-top:13px;text-align:center" onclick="showAuth('login')">Already have an account? Sign in</button>
+  </div>
+
+  <div class="auth-box hidden" id="boxRecover">
+    <div class="auth-logo"><svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M14 20C12 24 12 30 16 34L12 48l12-4c3 2 5 3 8 3 12 0 22-8 22-18S44 8 32 8c-9 0-16 5-18 12z" fill="#1d4ed8"/><path d="M22 26c0-4 4-7 8-7h4c4 0 8 3 8 7s-4 8-8 9v4h-4v-4c-4-1-8-5-8-9z" fill="#fff" opacity=".9"/><circle cx="28" cy="25" r="3" fill="#1d4ed8"/><circle cx="36" cy="25" r="3" fill="#1d4ed8"/></svg><span class="auth-logo-text">AdrianPanel</span></div>
+    <p class="auth-title">Recover your account</p><p class="auth-sub">Enter your email to see your credentials</p>
+    <div class="auth-err" id="recErr"></div><div class="auth-suc" id="recSuc"></div>
+    <div class="auth-field"><label class="auth-label">Email address</label><input class="auth-input" id="recEmail" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doRecover()"/></div>
+    <button class="auth-btn" onclick="doRecover()">Recover Account</button>
+    <button class="auth-link" style="display:block;margin-top:13px;text-align:center" onclick="showAuth('login')">Back to Sign In</button>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY ═══ -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- ═══ DRAWER ═══ -->
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-head-left">
+      <svg width="22" height="22" viewBox="0 0 64 64" fill="none"><path d="M14 20C12 24 12 30 16 34L12 48l12-4c3 2 5 3 8 3 12 0 22-8 22-18S44 8 32 8c-9 0-16 5-18 12z" fill="#2563eb"/><path d="M22 26c0-4 4-7 8-7h4c4 0 8 3 8 7s-4 8-8 9v4h-4v-4c-4-1-8-5-8-9z" fill="#fff" opacity=".9"/><circle cx="28" cy="25" r="3" fill="#1d4ed8"/><circle cx="36" cy="25" r="3" fill="#1d4ed8"/></svg>
+      <span>AdrianPanel</span>
+    </div>
+    <button class="drawer-x" onclick="closeDrawer()">&#215;</button>
+  </div>
+  <div class="drawer-body">
+    <p class="d-sec">Basic Administration</p>
+    <button class="d-item active" onclick="gotoAdmin('overview',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="d-item" onclick="gotoAdmin('panel-settings',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Settings</button>
+    <button class="d-item" onclick="gotoAdmin('api',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>Application API<span class="d-count">3</span></button>
+    <p class="d-sec">Management</p>
+    <button class="d-item" onclick="gotoAdmin('databases',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>Databases<span class="d-count">2</span></button>
+    <button class="d-item" onclick="gotoAdmin('locations',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>Locations</button>
+    <button class="d-item" onclick="gotoAdmin('nodes',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>Nodes</button>
+    <button class="d-item" onclick="gotoAdmin('servers-admin',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Servers<span class="d-count" id="srvCount">0</span></button>
+    <button class="d-item" onclick="gotoAdmin('users-admin',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Users<span class="d-count" id="usrCount">0</span></button>
+    <p class="d-sec">Service Management</p>
+    <button class="d-item" onclick="gotoAdmin('mounts',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.364 5.636a9 9 0 1 1-12.728 0"/><path d="M12 2v10"/></svg>Mounts</button>
+    <button class="d-item" onclick="gotoAdmin('nests',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Nests</button>
+  </div>
+  <div class="drawer-footer">
+    <div class="srv-pill" onclick="openM('mServers')">
+      <div class="sdot on" id="drawerDot"></div>
+      <div>
+        <div class="srv-pill-name" id="drawerSrvName">No server</div>
+        <div class="srv-pill-meta" id="drawerSrvMeta">Add a server to get started</div>
+      </div>
+      <svg style="margin-left:auto;color:#6b7280" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar" id="topbar">
+  <a class="topbar-logo" href="#">
+    <svg width="26" height="26" viewBox="0 0 64 64" fill="none"><path d="M14 20C12 24 12 30 16 34L12 48l12-4c3 2 5 3 8 3 12 0 22-8 22-18S44 8 32 8c-9 0-16 5-18 12z" fill="#2563eb"/><path d="M22 26c0-4 4-7 8-7h4c4 0 8 3 8 7s-4 8-8 9v4h-4v-4c-4-1-8-5-8-9z" fill="#fff" opacity=".9"/><circle cx="28" cy="25" r="3" fill="#1d4ed8"/><circle cx="36" cy="25" r="3" fill="#1d4ed8"/></svg>
+    <span class="topbar-logo-text">AdrianPanel</span>
+  </a>
+  <button class="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+  <div class="tb-bc"><span>Servers</span><span class="sep">›</span><span class="cur" id="tbSrvName">—</span></div>
+  <div class="topbar-right">
+    <div class="status-pill" onclick="openM('mServers')"><div class="sdot on" id="statusDot"></div><span id="statusTxt">Running</span></div>
+    <button class="btn btn-amber btn-sm" onclick="handleRestart()">Restart</button>
+    <button class="btn btn-red btn-sm" id="powerBtn" onclick="handlePower()">Stop</button>
+    <button class="btn btn-ghost btn-sm" onclick="openFTP()">FTP / SFTP</button>
+    <div class="avatar-wrap">
+      <button class="avatar-btn" id="avatarBtn" onclick="toggleDD()"><span id="avatarLetter">A</span></button>
+      <div class="user-dd" id="userDD">
+        <div class="user-dd-head"><div class="user-dd-name" id="ddName"></div><div class="user-dd-role" id="ddRole"></div></div>
+        <button class="dd-item" onclick="openM('mServers')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Manage Servers</button>
+        <button class="dd-item" onclick="switchTab('settings',null)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Server Settings</button>
+        <button class="dd-item danger" onclick="doLogout()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="page-header" id="pageHeader">
+  <div class="sub"><span class="badge b-blue" id="phEngine">Paper 1.21.4</span><span id="phAddr" style="color:#9ca3af"></span></div>
+  <h1 id="phTitle">—</h1>
+</div>
+
+<nav class="tab-strip" id="tabStrip">
+  <button class="tab-btn active" onclick="switchTab('console',this)">Console</button>
+  <button class="tab-btn" onclick="switchTab('files',this)">Files</button>
+  <button class="tab-btn" onclick="switchTab('players',this)">Players</button>
+  <button class="tab-btn" onclick="switchTab('plugins',this)">Plugins</button>
+  <button class="tab-btn" onclick="switchTab('settings',this)">Settings</button>
+</nav>
+
+<main class="main" id="mainContent">
+  <div class="alert success hidden" id="alertBanner"><span id="alertMsg"></span><button class="alert-x" onclick="this.parentElement.classList.add('hidden')">&#215;</button></div>
+
+  <div class="stat-grid" id="statsRow">
+    <div class="stat-card"><div class="stat-label">CPU Usage</div><div class="stat-value" id="cpuVal">—</div><div class="prog-track"><div class="prog-fill" id="cpuBar" style="width:0;background:#2563eb"></div></div></div>
+    <div class="stat-card"><div class="stat-label">Memory Usage</div><div class="stat-value" id="ramVal">—</div><div class="prog-track"><div class="prog-fill" id="ramBar" style="width:0;background:#8b5cf6"></div></div></div>
+    <div class="stat-card"><div class="stat-label">Players Online</div><div class="stat-value" id="playersVal">—</div><div class="stat-sub" id="playersSub">of 20 slots</div></div>
+    <div class="stat-card"><div class="stat-label">Uptime</div><div class="stat-value" id="uptimeVal">—</div><div class="stat-sub" id="uptimeSub">—</div></div>
+  </div>
+
+  <div class="info-strip" id="infoStrip">
+    <div class="ii"><div class="ii-k">Version</div><div class="ii-v" id="ii-ver">—</div></div>
+    <div class="ii"><div class="ii-k">Engine</div><div class="ii-v" id="ii-eng">—</div></div>
+    <div class="ii"><div class="ii-k">TPS</div><div class="ii-v" id="ii-tps">—</div></div>
+    <div class="ii"><div class="ii-k">Players</div><div class="ii-v" id="ii-players">—</div></div>
+    <div class="ii"><div class="ii-k">MOTD</div><div class="ii-v" id="ii-motd">—</div></div>
+    <div class="ii"><div class="ii-k">IP Address</div><div class="ii-v" id="ii-ip">—</div></div>
+  </div>
+
+  <!-- CONSOLE -->
+  <div id="tab-console">
+    <div class="console-wrap">
+      <div class="console-head"><span class="console-title">Server Console</span><span class="console-addr" id="consoleAddr">—</span><span id="connBadge" class="badge b-yellow" style="margin-left:auto">Not connected</span></div>
+      <div class="console-body" id="consoleBody"></div>
+      <div class="con-in-row"><input class="con-in" id="cmdIn" placeholder="Type a command and press Enter..." onkeydown="if(event.key==='Enter')sendCmd()"/><button class="con-send" onclick="sendCmd()">Send</button></div>
+    </div>
+  </div>
+
+  <!-- FILES -->
+  <div id="tab-files" class="hidden">
+    <div class="card">
+      <div class="card-head">
+        <span style="font-family:monospace;font-size:12px;color:#9ca3af">/root</span>
+        <div style="display:flex;gap:7px"><button class="xs xs-ghost">New Folder</button><button class="btn btn-blue btn-sm">Upload</button></div>
+      </div>
+      <table><thead><tr><th>Name</th><th>Size</th><th>Last Modified</th><th></th></tr></thead><tbody id="fileRows"></tbody></table>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <div id="tab-players" class="hidden">
+    <div class="card">
+      <div class="card-head"><span class="card-title" id="playersTitle">Online Players</span><button class="btn btn-blue btn-sm">Send Message</button></div>
+      <table><thead><tr><th>Player</th><th>IP</th><th>Rank</th><th>Ping</th><th>Session</th><th>Actions</th></tr></thead><tbody id="playerRows"></tbody></table>
+    </div>
+  </div>
+
+  <!-- PLUGINS -->
+  <div id="tab-plugins" class="hidden">
+    <div class="sub-strip">
+      <button class="tab-btn active" id="pt-store" onclick="switchPluginTab('store',this)">Plugin Store</button>
+      <button class="tab-btn" id="pt-installed" onclick="switchPluginTab('installed',this)">Installed</button>
+      <button class="tab-btn" id="pt-upload" onclick="switchPluginTab('upload',this)">Upload Your Plugin</button>
+    </div>
+    <div id="pc-store">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 12px;flex-wrap:wrap;gap:9px">
+        <div><div style="color:#111827;font-size:14px;font-weight:700">Plugin Store</div><div style="color:#6b7280;font-size:12px;margin-top:2px">Browse and install plugins uploaded by the creator</div></div>
+        <div id="creatorUploadBtn"></div>
+      </div>
+      <div class="pg-grid" id="storeGrid"></div>
+    </div>
+    <div id="pc-installed" class="hidden">
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><span class="card-title" id="instTitle2">Installed Plugins</span></div>
+        <table><thead><tr><th>Plugin</th><th>Version</th><th>Installed By</th><th>Source</th><th>Status</th><th>Actions</th></tr></thead><tbody id="installedRows"></tbody></table>
+      </div>
+    </div>
+    <div id="pc-upload" class="hidden">
+      <div class="card" style="padding:22px;margin-top:14px">
+        <div style="color:#111827;font-size:14px;font-weight:700;margin-bottom:3px">Upload Your Plugin</div>
+        <div style="color:#6b7280;font-size:12px;margin-bottom:18px">Upload a .jar file. It will be installed to your plugins folder.</div>
+        <div class="upload-zone" onclick="document.getElementById('plFileInput').click()">
+          <svg width="30" height="30" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p><strong>Click to select a .jar file</strong></p>
+          <p style="font-size:11px;margin-top:3px">or drag and drop here</p>
+        </div>
+        <input type="file" id="plFileInput" accept=".jar" style="display:none" onchange="handleUserUpload(this)"/>
+        <div id="uploadResult" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="tab-settings" class="hidden">
+    <div class="card" style="padding:22px">
+      <div style="color:#111827;font-size:14px;font-weight:700;margin-bottom:18px">Server Configuration</div>
+      <div class="s-grid" style="margin-bottom:18px">
+        <div class="f-group"><label class="f-label">MOTD</label><input class="f-input" value="A Minecraft Server"/><span class="f-hint">Shown in the server browser.</span></div>
+        <div class="f-group"><label class="f-label">Max Players</label><input class="f-input" type="number" value="20"/></div>
+        <div class="f-group"><label class="f-label">Game Mode</label><select class="f-select"><option selected>Survival</option><option>Creative</option><option>Adventure</option><option>Spectator</option></select></div>
+        <div class="f-group"><label class="f-label">Difficulty</label><select class="f-select"><option>Peaceful</option><option>Easy</option><option selected>Normal</option><option>Hard</option></select></div>
+        <div class="f-group"><label class="f-label">View Distance (chunks)</label><input class="f-input" type="number" value="10" min="2" max="32"/></div>
+        <div class="f-group"><label class="f-label">Server Port</label><input class="f-input" type="number" value="25565"/></div>
+      </div>
+      <div class="tog-row"><div><div class="tog-lbl">PvP</div><div class="tog-desc">Allow players to damage each other.</div></div><button class="tog on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+      <div class="tog-row"><div><div class="tog-lbl">Online Mode</div><div class="tog-desc">Authenticate players via Mojang.</div></div><button class="tog on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+      <div class="tog-row"><div><div class="tog-lbl">Whitelist</div><div class="tog-desc">Only allow whitelisted players.</div></div><button class="tog off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+      <div class="tog-row"><div><div class="tog-lbl">Command Blocks</div><div class="tog-desc">Enable command blocks in the world.</div></div><button class="tog off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+      <div class="tog-row"><div><div class="tog-lbl">Flight</div><div class="tog-desc">Allow flight in survival mode.</div></div><button class="tog off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+      <div style="margin-top:18px;display:flex;gap:9px"><button class="btn btn-blue">Save Changes</button><button class="btn btn-ghost">Reset to Default</button></div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div id="tab-admin" class="hidden">
+    <div id="as-overview">
+      <div class="sec-head">Overview</div><div class="sec-sub">Panel-wide statistics</div>
+      <div class="admin-grid" style="margin-bottom:16px">
+        <div class="adm-card"><div class="adm-num" id="ov-srvs">0</div><div class="adm-lbl">Total Servers</div><div class="adm-note">All connected</div></div>
+        <div class="adm-card"><div class="adm-num" id="ov-usrs">0</div><div class="adm-lbl">Registered Users</div></div>
+        <div class="adm-card"><div class="adm-num" id="ov-pls">0</div><div class="adm-lbl">Store Plugins</div></div>
+        <div class="adm-card"><div class="adm-num">1</div><div class="adm-lbl">Active Nodes</div><div class="adm-note">node1 · Online</div></div>
+      </div>
+      <div class="card"><div class="card-head"><span class="card-title">Recent Activity</span></div><table><thead><tr><th>Action</th><th>User</th><th>Server</th><th>Time</th></tr></thead><tbody id="actRows"></tbody></table></div>
+    </div>
+    <div id="as-panel-settings" class="hidden">
+      <div class="sec-head">Panel Settings</div><div class="sec-sub">Configure global behaviour</div>
+      <div class="card" style="padding:22px">
+        <div class="s-grid" style="margin-bottom:18px">
+          <div class="f-group"><label class="f-label">Panel Name</label><input class="f-input" value="AdrianPanel"/></div>
+          <div class="f-group"><label class="f-label">Support Email</label><input class="f-input" type="email" value="admin@adrianpanel.com"/></div>
+          <div class="f-group"><label class="f-label">Language</label><select class="f-select"><option>English</option><option>Spanish</option><option>Portuguese</option></select></div>
+          <div class="f-group"><label class="f-label">Max Upload Size (MB)</label><input class="f-input" type="number" value="100"/></div>
+        </div>
+        <div class="tog-row"><div><div class="tog-lbl">Allow User Registration</div><div class="tog-desc">Let anyone create an account.</div></div><button class="tog on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+        <div class="tog-row"><div><div class="tog-lbl">Maintenance Mode</div><div class="tog-desc">Block non-admin logins.</div></div><button class="tog off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="tog-k"></div></button></div>
+        <div style="margin-top:18px"><button class="btn btn-blue">Save Settings</button></div>
+      </div>
+    </div>
+    <div id="as-api" class="hidden">
+      <div class="sec-head">Application API</div><div class="sec-sub">API keys for external integrations</div>
+      <div class="card"><div class="card-head"><span class="card-title">API Keys</span><button class="btn btn-blue btn-sm" onclick="addApiKey()">Create Key</button></div><table><thead><tr><th>Name</th><th>Token</th><th>Permissions</th><th>Created</th><th></th></tr></thead><tbody id="apiRows"></tbody></table></div>
+    </div>
+    <div id="as-databases" class="hidden">
+      <div class="sec-head">Databases</div><div class="sec-sub">MySQL databases for your servers</div>
+      <div class="card"><div class="card-head"><span class="card-title">Database Hosts</span><button class="btn btn-blue btn-sm">Add Host</button></div><table><thead><tr><th>Name</th><th>Host</th><th>Port</th><th>Status</th></tr></thead><tbody><tr><td><strong>Primary MySQL</strong></td><td style="font-family:monospace;font-size:12px;color:#6b7280">127.0.0.1</td><td>3306</td><td><span class="badge b-green">Online</span></td></tr></tbody></table></div>
+      <div class="card" style="margin-top:14px"><div class="card-head"><span class="card-title">Server Databases</span><button class="btn btn-blue btn-sm">Create Database</button></div><table><thead><tr><th>Database</th><th>Server</th><th>Username</th><th>Host</th><th></th></tr></thead><tbody><tr><td style="font-family:monospace;font-size:12px">s1_skyblock</td><td>SkyBlock Prime</td><td style="font-family:monospace;font-size:12px">u1_skyblock</td><td style="font-family:monospace;font-size:12px">127.0.0.1:3306</td><td><div style="display:flex;gap:6px"><button class="xs xs-ghost">Rotate PW</button><button class="xs xs-red">Delete</button></div></td></tr></tbody></table></div>
+    </div>
+    <div id="as-locations" class="hidden">
+      <div class="sec-head">Locations</div><div class="sec-sub">Geographic regions</div>
+      <div class="card"><div class="card-head"><span class="card-title">Locations</span><button class="btn btn-blue btn-sm">Add Location</button></div><table><thead><tr><th>Code</th><th>Name</th><th>Nodes</th></tr></thead><tbody><tr><td><span class="badge b-blue">us-east</span></td><td>United States — East</td><td>1</td></tr></tbody></table></div>
+    </div>
+    <div id="as-nodes" class="hidden">
+      <div class="sec-head">Nodes</div><div class="sec-sub">Physical machines hosting your servers</div>
+      <div class="card"><div class="card-head"><span class="card-title">All Nodes</span><button class="btn btn-blue btn-sm">Create Node</button></div><table><thead><tr><th>Name</th><th>Location</th><th>FQDN</th><th>Memory</th><th>Disk</th><th>Status</th></tr></thead><tbody><tr><td><strong>node1</strong></td><td>us-east</td><td style="font-family:monospace;font-size:12px">node1.adrianpanel.com</td><td>8 GB / 16 GB</td><td>20 GB / 100 GB</td><td><span class="badge b-green">Online</span></td></tr></tbody></table></div>
+    </div>
+    <div id="as-servers-admin" class="hidden">
+      <div class="sec-head">Servers</div><div class="sec-sub">All servers in this panel</div>
+      <div class="card"><div class="card-head"><span class="card-title" id="allSrvTitle">All Servers</span><button class="btn btn-blue btn-sm" onclick="openM('mAddServer')">Add Server</button></div><table><thead><tr><th>Name</th><th>Engine</th><th>IP : Port</th><th>Status</th><th></th></tr></thead><tbody id="allSrvRows"></tbody></table></div>
+    </div>
+    <div id="as-users-admin" class="hidden">
+      <div class="sec-head">Users</div><div class="sec-sub">All registered accounts</div>
+      <div class="card"><div class="card-head"><span class="card-title" id="usrsTitle">All Users</span></div><table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th></th></tr></thead><tbody id="usrsRows"></tbody></table></div>
+    </div>
+    <div id="as-mounts" class="hidden"><div class="sec-head">Mounts</div><div class="sec-sub">Bind-mount directories into containers</div><div class="card"><div class="card-head"><span class="card-title">Mounts</span><button class="btn btn-blue btn-sm">Create Mount</button></div><div class="empty">No mounts configured yet.</div></div></div>
+    <div id="as-nests" class="hidden"><div class="sec-head">Nests</div><div class="sec-sub">Egg collections for different server types</div><div class="card"><div class="card-head"><span class="card-title">Nests</span><button class="btn btn-blue btn-sm">Create Nest</button></div><table><thead><tr><th>Name</th><th>Description</th><th>Eggs</th></tr></thead><tbody><tr><td><strong>Minecraft</strong></td><td style="color:#6b7280">Java Edition</td><td>4</td></tr><tr><td><strong>Bedrock</strong></td><td style="color:#6b7280">Bedrock Edition</td><td>2</td></tr></tbody></table></div></div>
+  </div>
+</main>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- MANAGE SERVERS -->
+<div class="modal-overlay" id="mServers"><div class="modal-box lg">
+  <div class="modal-head"><span class="modal-title">Server Manager</span><button class="modal-x" onclick="closeM('mServers')">&#215;</button></div>
+  <div class="modal-body">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="color:#374151;font-size:13px;font-weight:600">Your Servers</span>
+      <button class="btn btn-blue btn-sm" onclick="closeM('mServers');openM('mAddServer')">Add Server</button>
+    </div>
+    <div id="serverListEl"></div>
+  </div>
+</div></div>
+
+<!-- ADD SERVER -->
+<div class="modal-overlay" id="mAddServer"><div class="modal-box md">
+  <div class="modal-head"><span class="modal-title">Add Minecraft Server</span><button class="modal-x" onclick="closeM('mAddServer')">&#215;</button></div>
+  <div class="modal-body">
+    <div class="m-field"><label class="m-label">Server Name</label><input class="m-input" id="as-name" placeholder="e.g. SkyBlock Prime"/></div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">IP / Host</label><input class="m-input" id="as-host" placeholder="mc.example.com or 192.168.1.1"/></div>
+      <div class="m-field"><label class="m-label">Port</label><input class="m-input" id="as-port" type="number" value="25565"/></div>
+    </div>
+    <div class="m-section">Server Details</div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">Minecraft Version</label><input class="m-input" id="as-ver" placeholder="e.g. 1.21.4"/></div>
+      <div class="m-field"><label class="m-label">Engine</label>
+        <select class="m-select" id="as-engine">
+          <option>Paper</option><option>Spigot</option><option>Bukkit</option><option>Purpur</option>
+          <option>Fabric</option><option>Forge</option><option>Velocity</option><option>BungeeCord</option><option>Vanilla</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-section">RCON (optional — for sending commands)</div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">RCON Port</label><input class="m-input" id="as-rcon-port" type="number" value="25575"/></div>
+      <div class="m-field"><label class="m-label">RCON Password</label><input class="m-input" id="as-rcon-pass" type="password" placeholder="rcon-password"/></div>
+    </div>
+    <p class="m-hint" style="margin-bottom:12px">Enable RCON in your server.properties: <code>enable-rcon=true</code> and set <code>rcon.password</code></p>
+    <div class="conn-result" id="as-connResult">
+      <div class="sdot pinging" id="as-connDot"></div>
+      <span id="as-connTxt">Checking server status...</span>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('mAddServer')">Cancel</button><button class="btn btn-blue" onclick="submitServer()">Check &amp; Add Server</button></div>
+</div></div>
+
+<!-- FTP -->
+<div class="modal-overlay" id="mFtp"><div class="modal-box md">
+  <div class="modal-head"><span class="modal-title">FTP / SFTP Connection</span><button class="modal-x" onclick="closeM('mFtp')">&#215;</button></div>
+  <div class="modal-body">
+    <div class="alert info" style="margin-bottom:14px;font-size:12px">Use these credentials in FileZilla, WinSCP, Cyberduck or any FTP/SFTP client.</div>
+    <div id="ftpCurrentInfo"></div>
+    <div class="m-section">Configure SFTP</div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">SFTP Host</label><input class="m-input" id="ftp-host" placeholder="sftp.example.com"/></div>
+      <div class="m-field"><label class="m-label">Port</label><input class="m-input" id="ftp-port" type="number" value="2022"/></div>
+    </div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">Username</label><input class="m-input" id="ftp-user" placeholder="sftp_user"/></div>
+      <div class="m-field"><label class="m-label">Password</label><input class="m-input" id="ftp-pass" type="password" placeholder="sftp_password"/></div>
+    </div>
+    <div class="m-field"><label class="m-label">Root Path</label><input class="m-input" id="ftp-path" placeholder="/home/minecraft/servers/skyblock"/></div>
+    <button class="btn btn-blue btn-sm" onclick="saveFtp()" style="margin-top:4px">Save SFTP Config</button>
+    <div class="m-section">Other Options</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm">GitHub Sync</button>
+      <button class="btn btn-ghost btn-sm">S3 Backup</button>
+      <button class="btn btn-ghost btn-sm">Rsync</button>
+      <button class="btn btn-ghost btn-sm">WebDAV</button>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('mFtp')">Close</button></div>
+</div></div>
+
+<!-- CREATOR UPLOAD PLUGIN -->
+<div class="modal-overlay" id="mCreatorUpload"><div class="modal-box md">
+  <div class="modal-head"><span class="modal-title">Upload Plugin to Store</span><button class="modal-x" onclick="closeM('mCreatorUpload')">&#215;</button></div>
+  <div class="modal-body">
+    <div class="m-field"><label class="m-label">Plugin Name</label><input class="m-input" id="mp-name" placeholder="e.g. EssentialsX"/></div>
+    <div class="m-field"><label class="m-label">Description</label><textarea class="m-textarea" id="mp-desc" placeholder="What does this plugin do?"></textarea></div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">Author</label><input class="m-input" id="mp-author" placeholder="Author name"/></div>
+      <div class="m-field"><label class="m-label">Version</label><input class="m-input" id="mp-ver" placeholder="e.g. 2.21.0"/></div>
+    </div>
+    <div class="m-row">
+      <div class="m-field"><label class="m-label">Category</label><select class="m-select" id="mp-cat"><option>Utility</option><option>Economy</option><option>Protection</option><option>Admin Tools</option><option>Fun</option><option>Anti-Cheat</option><option>Chat</option><option>Other</option></select></div>
+      <div class="m-field"><label class="m-label">Plugin File (.jar)</label><input class="m-input" id="mp-file" type="file" accept=".jar"/></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('mCreatorUpload')">Cancel</button><button class="btn btn-blue" onclick="submitStorePlugin()">Upload to Store</button></div>
+</div></div>
+
+<!-- INSTALL PLUGIN -->
+<div class="modal-overlay" id="mInstall"><div class="modal-box sm">
+  <div class="modal-head"><span class="modal-title" id="instModalTitle">Install Plugin</span><button class="modal-x" onclick="closeM('mInstall')">&#215;</button></div>
+  <div class="modal-body">
+    <div id="instModalDesc" style="color:#4b5563;font-size:13px;line-height:17px;margin-bottom:13px"></div>
+    <div class="m-field"><label class="m-label">Select Version</label><select class="m-select" id="instVersion"></select></div>
+    <div id="instModalAuthor" style="color:#9ca3af;font-size:12px;margin-top:5px"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('mInstall')">Cancel</button><button class="btn btn-green" onclick="confirmInstall()">Install Plugin</button></div>
+</div></div>
+
+<script>
+// ══════════════════════════════ STORAGE
+const CREATOR={username:'Adrian2005@',password:'@Adrian2005',email:'admin@adrianpanel.com',role:'creator'};
+const ls={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const gUsers=()=>ls.get('ap_users',[]);
+const sUsers=v=>ls.set('ap_users',v);
+const gStore=()=>ls.get('ap_store',[]);
+const sStore=v=>ls.set('ap_store',v);
+const gInst=()=>ls.get('ap_inst',[]);
+const sInst=v=>ls.set('ap_inst',v);
+const gUserPl=()=>ls.get('ap_usrpl',[]);
+const sUserPl=v=>ls.set('ap_usrpl',v);
+const gServers=()=>ls.get('ap_servers',[]);
+const sServers=v=>ls.set('ap_servers',v);
+const gActivity=()=>ls.get('ap_activity',[]);
+const sActivity=v=>ls.set('ap_activity',v);
+
+(function seed(){
+  let u=gUsers(); if(!u.find(x=>x.username===CREATOR.username)){u.unshift(CREATOR);sUsers(u);}
+  if(gStore().length===0) sStore([
+    {id:1,name:'EssentialsX',desc:'Core plugin providing essential commands: /home, /spawn, /tp, kits, warps, economy and much more. A must-have for any server.',author:'EssentialsX Team',versions:['2.21.0','2.20.1','2.19.7'],category:'Utility'},
+    {id:2,name:'WorldGuard',desc:'Protect areas from griefing and control player actions within regions.',author:'EngineHub',versions:['7.0.11','7.0.10'],category:'Protection'},
+    {id:3,name:'LuckPerms',desc:'Advanced permission management with groups, inheritance and a web editor.',author:'Luck',versions:['5.4.137','5.4.130'],category:'Admin Tools'},
+    {id:4,name:'Vault',desc:'Economy and permissions API required by many economy plugins.',author:'MilkBowl',versions:['1.7.3','1.7.2'],category:'Economy'},
+  ]);
+  if(gActivity().length===0) sActivity([{action:'Panel initialized',user:'Adrian2005@',server:'-',time:'Now'}]);
+})();
+
+// ══════════════════════════════ STATE
+let ME=null,ACTIVE=null,serverOnline=true,cpu=42,ram=68,uptimeSec=7934,installTarget=null;
+const apiKeys=[{name:'Discord Bot',token:'ptla_Xx••••••••••••',perms:'Read Only',created:'2025-03-01'},{name:'Backup Script',token:'ptla_Yy••••••••••••',perms:'Read & Write',created:'2025-03-05'},{name:'Monitoring',token:'ptla_Zz••••••••••••',perms:'Read Only',created:'2025-03-10'}];
+const files=[{name:'server.jar',dir:false,size:'45.2 MB',mod:'2 days ago'},{name:'world',dir:true,size:'1.2 GB',mod:'1 hr ago'},{name:'plugins',dir:true,size:'234 MB',mod:'3 hrs ago'},{name:'server.properties',dir:false,size:'2.1 KB',mod:'1 day ago'},{name:'whitelist.json',dir:false,size:'512 B',mod:'5 days ago'},{name:'ops.json',dir:false,size:'128 B',mod:'1 week ago'},{name:'logs',dir:true,size:'890 MB',mod:'30 min ago'}];
+const players=[{name:'Steve',ip:'192.168.1.10',ping:24,rank:'Admin',joined:'2h 14m'},{name:'Alex',ip:'192.168.1.22',ping:58,rank:'Moderator',joined:'43m'},{name:'Notch',ip:'10.0.0.5',ping:112,rank:'Player',joined:'12m'}];
+const logs=[];
+
+// ══════════════════════════════ UTILS
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const $=id=>document.getElementById(id);
+function showAlert(msg,type){const el=$('alertBanner');el.className='alert '+type;$('alertMsg').textContent=msg;el.classList.remove('hidden');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.add('hidden'),4500);}
+function openM(id){$(id).classList.add('open');}
+function closeM(id){$(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ══════════════════════════════ AUTH
+function showAuth(s){['Login','Register','Recover'].forEach(n=>$('box'+n).classList.add('hidden'));$('box'+s.charAt(0).toUpperCase()+s.slice(1)).classList.remove('hidden');}
+
+(function loadSaved(){const c=ls.get('ap_creds',null);if(c){$('lUser').value=c.u||'';$('lPass').value=c.p||'';$('chkRem').checked=true;}})();
+
+function doLogin(){
+  const u=$('lUser').value.trim(),p=$('lPass').value,err=$('loginErr');err.style.display='none';
+  if(!u||!p){showE(err,'Please fill in all fields.');return;}
+  const found=gUsers().find(x=>x.username===u&&x.password===p);
+  if(!found){showE(err,'Invalid username or password.');return;}
+  if($('chkRem').checked)ls.set('ap_creds',{u,p});else ls.set('ap_creds',null);
+  ME=found;showPanel();
+}
+function doRegister(){
+  const u=$('rUser').value.trim(),em=$('rEmail').value.trim(),p=$('rPass').value,p2=$('rPass2').value;
+  const err=$('regErr'),suc=$('regSuc');err.style.display='none';suc.style.display='none';
+  if(!u||!em||!p||!p2){showE(err,'Please fill in all fields.');return;}
+  if(p!==p2){showE(err,'Passwords do not match.');return;}
+  if(p.length<6){showE(err,'Password must be at least 6 characters.');return;}
+  const users=gUsers();
+  if(users.find(x=>x.username===u)){showE(err,'Username already taken.');return;}
+  if(users.find(x=>x.email===em)){showE(err,'Email already registered.');return;}
+  users.push({username:u,password:p,email:em,role:'user'});sUsers(users);
+  if($('chkRemReg').checked)ls.set('ap_creds',{u,p});
+  suc.style.display='block';suc.textContent='Account created! You can now sign in.';
+  setTimeout(()=>showAuth('login'),1500);
+}
+function doRecover(){
+  const em=$('recEmail').value.trim(),err=$('recErr'),suc=$('recSuc');err.style.display='none';suc.style.display='none';
+  if(!em){showE(err,'Please enter your email.');return;}
+  const found=gUsers().find(x=>x.email===em);
+  if(!found){showE(err,'No account found with that email.');return;}
+  suc.style.display='block';
+  suc.innerHTML=`<strong>Username:</strong> ${esc(found.username)}<br><strong>Password:</strong> ${esc(found.password)}`;
+}
+function showE(el,msg){el.style.display='block';el.textContent=msg;}
+function doLogout(){ME=null;$('authBg').style.display='flex';$('topbar').style.display='none';$('pageHeader').style.display='none';$('tabStrip').style.display='none';$('mainContent').style.display='none';$('userDD').classList.remove('open');}
+
+function showPanel(){
+  $('authBg').style.display='none';
+  $('topbar').style.display='flex';
+  $('pageHeader').style.display='block';
+  $('tabStrip').style.display='flex';
+  $('mainContent').style.display='flex';
+  $('avatarLetter').textContent=ME.username.charAt(0).toUpperCase();
+  $('ddName').textContent=ME.username;
+  $('ddRole').innerHTML=ME.role==='creator'?'<span class="role-creator">CREATOR</span>':'<span class="role-user">USER</span>';
+  $('creatorUploadBtn').innerHTML=ME.role==='creator'?'<button class="btn btn-blue btn-sm" onclick="openM(\'mCreatorUpload\')">Upload Plugin to Store</button>':'';
+  const srvs=gServers();
+  ACTIVE=srvs.length>0?srvs[0]:null;
+  applyServer();
+  renderAll();
+  if(ACTIVE) pingServer(ACTIVE);
+}
+
+// ══════════════════════════════ SERVER
+function applyServer(){
+  if(!ACTIVE){
+    ['tbSrvName','phTitle','drawerSrvName'].forEach(id=>$(id).textContent='No server connected');
+    $('drawerSrvMeta').textContent='Add a server to get started';
+    $('phAddr').textContent='';$('phEngine').textContent='—';
+    $('consoleAddr').textContent='—';$('ii-ver').textContent='—';$('ii-eng').textContent='—';$('ii-ip').textContent='—';
+    $('connBadge').textContent='No server';$('connBadge').className='badge b-gray';
+    return;
+  }
+  const s=ACTIVE;
+  const addr=`${s.host}:${s.port}`;
+  $('tbSrvName').textContent=s.name;$('phTitle').textContent=s.name;
+  $('phAddr').textContent=addr;$('phEngine').textContent=`${s.engine} ${s.version}`;
+  $('consoleAddr').textContent=addr;
+  $('ii-ver').textContent=`${s.engine} ${s.version}`;$('ii-eng').textContent=s.engine;$('ii-ip').textContent=addr;
+  $('drawerSrvName').textContent=s.name;$('drawerSrvMeta').textContent=`${s.engine} ${s.version} · ${s.host}`;
+  loadFtpFields(s);
+}
+
+// Real server status check via public Minecraft API
+async function pingServer(srv){
+  if(!srv) return;
+  $('connBadge').textContent='Checking...';$('connBadge').className='badge b-yellow';
+  $('statusDot').className='sdot pinging';$('statusTxt').textContent='Checking...';
+  try{
+    const res=await fetch(`https://api.mcsrvstat.us/3/${encodeURIComponent(srv.host)}:${srv.port}`);
+    const data=await res.json();
+    if(data.online){
+      serverOnline=true;
+      $('connBadge').textContent='Online';$('connBadge').className='badge b-green';
+      $('statusDot').className='sdot on';$('statusTxt').textContent='Online';
+      $('drawerDot').className='sdot on';
+      $('powerBtn').textContent='Stop';$('powerBtn').className='btn btn-red btn-sm';
+      $('uptimeSub').textContent='Running';
+      // Populate real data
+      const online=data.players?.online??'?';
+      const max=data.players?.max??'?';
+      const motd=data.motd?.clean?.[0]?.trim()||'A Minecraft Server';
+      const apiVer=data.version||srv.version;
+      $('playersVal').textContent=online;
+      $('playersSub').textContent=`of ${max} slots`;
+      $('playersTitle').textContent=`Online Players (${online} / ${max})`;
+      $('ii-players').textContent=`${online} / ${max}`;
+      $('ii-motd').textContent=motd;
+      $('ii-tps').textContent='19.8 / 20';
+      logAdd('INFO',`[Panel] Connected to ${srv.host}:${srv.port}`);
+      logAdd('INFO',`[Panel] Server version: ${esc(apiVer)} | Players: ${online}/${max}`);
+      logAdd('INFO',`[Panel] MOTD: ${esc(motd)}`);
+      if(data.players?.list?.length) data.players.list.forEach(p=>logAdd('INFO',`[Panel] Online player: ${esc(p.name||p)}`));
+      showAlert(`Connected to ${srv.name} — ${online}/${max} players online`,'success');
+    } else {
+      serverOnline=false;
+      $('connBadge').textContent='Offline';$('connBadge').className='badge b-red';
+      $('statusDot').className='sdot off';$('statusTxt').textContent='Offline';
+      $('drawerDot').className='sdot off';
+      $('powerBtn').textContent='Start';$('powerBtn').className='btn btn-green btn-sm';
+      $('uptimeSub').textContent='Offline';
+      $('ii-players').textContent='0 / ?';$('ii-tps').textContent='—';$('ii-motd').textContent='—';
+      logAdd('WARN',`[Panel] ${srv.host}:${srv.port} is offline or unreachable`);
+      showAlert(`${srv.name} appears to be offline. Check your server is running and the IP is correct.`,'warning');
+    }
+  } catch(e){
+    $('connBadge').textContent='Check failed';$('connBadge').className='badge b-red';
+    $('statusDot').className='sdot off';$('statusTxt').textContent='Error';
+    logAdd('ERROR',`[Panel] Could not reach status API: ${e.message}`);
+    showAlert('Could not reach the status API. Check your internet connection.','error');
+  }
+}
+
+// Check status when adding server
+async function checkServerStatus(host,port){
+  try{
+    const res=await fetch(`https://api.mcsrvstat.us/3/${encodeURIComponent(host)}:${port}`);
+    return await res.json();
+  }catch{return {online:false};}
+}
+
+function submitServer(){
+  const name=$('as-name').value.trim(),host=$('as-host').value.trim();
+  const port=parseInt($('as-port').value)||25565;
+  const ver=$('as-ver').value.trim()||'1.21.4';
+  const engine=$('as-engine').value;
+  const rconPort=parseInt($('as-rcon-port').value)||25575;
+  const rconPass=$('as-rcon-pass').value;
+  if(!name||!host){showAlert('Name and Host are required.','error');return;}
+  const result=$('as-connResult');result.style.display='flex';
+  $('as-connDot').className='sdot pinging';
+  $('as-connTxt').textContent=`Checking ${host}:${port}...`;
+  checkServerStatus(host,port).then(data=>{
+    const srvs=gServers();
+    const newSrv={id:Date.now(),name,host,port,version:ver,engine,rconPort,rconPass,ftpHost:'',ftpPort:2022,ftpUser:'',ftpPass:'',ftpPath:'',online:data.online};
+    srvs.push(newSrv);sServers(srvs);
+    if(data.online){
+      $('as-connDot').className='sdot on';
+      $('as-connTxt').textContent=`Connected! Players: ${data.players?.online??0}/${data.players?.max??'?'}`;
+    } else {
+      $('as-connDot').className='sdot off';
+      $('as-connTxt').textContent='Server added but appears offline. It will show online once it starts.';
+    }
+    ACTIVE=newSrv;applyServer();renderAll();addActivity('Server added: '+name,ME.username,name,'Just now');
+    setTimeout(()=>{
+      closeM('mAddServer');result.style.display='none';
+      ['as-name','as-host','as-rcon-pass','as-ver'].forEach(id=>$(id).value='');
+      $('as-port').value='25565';$('as-rcon-port').value='25575';
+      showAlert(name+(data.online?' connected and online!':(': added (server appears offline)')), 'success');
+      if(data.online) pingServer(ACTIVE);
+    },1200);
+  });
+}
+
+function deleteServer(id){
+  if(!confirm('Remove this server from the panel?'))return;
+  const srvs=gServers().filter(s=>s.id!==id);sServers(srvs);
+  if(ACTIVE&&ACTIVE.id===id){ACTIVE=srvs.length>0?srvs[0]:null;applyServer();}
+  renderServerList();renderAllServers();renderOverview();
+  $('srvCount').textContent=srvs.length;
+  showAlert('Server removed.','warning');
+}
+
+function switchServer(id){
+  const s=gServers().find(x=>x.id===id);if(!s)return;
+  ACTIVE=s;applyServer();renderServerList();closeM('mServers');
+  showAlert('Switched to '+s.name,'info');
+  pingServer(s);
+}
+
+function renderServerList(){
+  const srvs=gServers();
+  $('serverListEl').innerHTML=srvs.length===0
+    ?'<div class="empty">No servers added yet. Click Add Server.</div>'
+    :srvs.map(s=>`<div class="srv-card ${ACTIVE&&ACTIVE.id===s.id?'active-s':''}" onclick="switchServer(${s.id})">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div class="srv-icon"><svg width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <div><div class="srv-name">${esc(s.name)}</div><div class="srv-meta">${esc(s.engine)} ${esc(s.version)} · ${esc(s.host)}:${s.port}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="badge ${s.online?'b-green':'b-gray'}">${s.online?'Online':'Offline'}</span>
+          <button class="xs xs-blue" onclick="event.stopPropagation();doPing(${s.id})">Ping</button>
+          <button class="xs xs-red" onclick="event.stopPropagation();deleteServer(${s.id})">Remove</button>
+        </div>
+      </div>`).join('');
+}
+
+// ══════════════════════════════ DRAWER / TABS
+function toggleDrawer(){$('drawer').classList.toggle('open');$('overlay').classList.toggle('open');}
+function closeDrawer(){$('drawer').classList.remove('open');$('overlay').classList.remove('open');}
+function toggleDD(){$('userDD').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!$('avatarBtn').contains(e.target))$('userDD').classList.remove('open');});
+
+const MAIN_TABS=['console','files','players','plugins','settings','admin'];
+function switchTab(name,btn){
+  MAIN_TABS.forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==name));
+  $('statsRow').classList.toggle('hidden',name==='admin');
+  $('infoStrip').classList.toggle('hidden',name==='admin');
+  if(btn){document.querySelectorAll('#tabStrip .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+}
+
+const PTABS=['store','installed','upload'];
+function switchPluginTab(n,btn){
+  PTABS.forEach(t=>$('pc-'+t).classList.toggle('hidden',t!==n));
+  document.querySelectorAll('[id^="pt-"]').forEach(b=>{if(b.tagName==='BUTTON')b.classList.remove('active');});
+  btn.classList.add('active');
+}
+
+const ADMIN_SECS=['overview','panel-settings','api','databases','locations','nodes','servers-admin','users-admin','mounts','nests'];
+function gotoAdmin(sec,btn){
+  closeDrawer();switchTab('admin',null);
+  document.querySelectorAll('#tabStrip .tab-btn').forEach(b=>b.classList.remove('active'));
+  ADMIN_SECS.forEach(s=>$('as-'+s).classList.toggle('hidden',s!==sec));
+  document.querySelectorAll('.d-item').forEach(i=>i.classList.remove('active'));btn.classList.add('active');
+  if(sec==='overview')renderOverview();
+  if(sec==='users-admin')renderUsersTable();
+  if(sec==='servers-admin')renderAllServers();
+  if(sec==='api')renderApiKeys();
+}
+
+// ══════════════════════════════ CONSOLE
+function logAdd(level,msg){const t=new Date().toTimeString().slice(0,8);logs.push({time:t,level,msg});renderConsole();}
+function renderConsole(){
+  const b=$('consoleBody');
+  b.innerHTML=logs.map(l=>`<div class="log-row"><span class="log-t">${l.time}</span><span class="log-${l.level}">[${l.level}]</span><span class="log-m-${l.level}">${esc(l.msg)}</span></div>`).join('');
+  b.scrollTop=b.scrollHeight;
+}
+function sendCmd(){const inp=$('cmdIn'),v=inp.value.trim();if(!v)return;logAdd('CMD','> '+v);logAdd('INFO',`[Server]: Unknown command "${v}". Type "help" for help.`);inp.value='';}
+
+// ══════════════════════════════ FILES
+function renderFiles(){
+  $('fileRows').innerHTML=files.map(f=>`<tr>
+    <td><svg style="vertical-align:middle;margin-right:7px" width="14" height="14" fill="none" stroke="${f.dir?'#2563eb':'#9ca3af'}" stroke-width="2" viewBox="0 0 24 24">${f.dir?'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'}</svg><span style="color:${f.dir?'#2563eb':'#374151'}">${esc(f.name)}${f.dir?'/':''}</span></td>
+    <td style="color:#9ca3af">${f.size}</td><td style="color:#9ca3af">${f.mod}</td>
+    <td><div style="display:flex;gap:5px"><button class="xs xs-ghost">Edit</button><button class="xs xs-red">Delete</button></div></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════ PLAYERS
+function renderPlayers(){
+  const RC={Admin:'b-red',Moderator:'b-yellow',Player:'b-green'};
+  $('playerRows').innerHTML=players.map(p=>{
+    const pc=p.ping<50?'ping-green':p.ping<100?'ping-yellow':'ping-red';
+    return `<tr>
+      <td><div class="p-row"><div class="p-av"><svg width="12" height="12" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span style="font-weight:600;color:#111827">${esc(p.name)}</span></div></td>
+      <td style="color:#9ca3af;font-family:monospace;font-size:12px">${p.ip}</td>
+      <td><span class="badge ${RC[p.rank]||'b-gray'}">${p.rank}</span></td>
+      <td class="${pc}">${p.ping}ms</td><td style="color:#9ca3af">${p.joined}</td>
+      <td><div style="display:flex;gap:5px"><button class="xs xs-amber">Kick</button><button class="xs xs-red">Ban</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════ PLUGINS STORE
+const catColor={Utility:'b-blue',Economy:'b-yellow',Protection:'b-green','Admin Tools':'b-purple',Fun:'b-blue','Anti-Cheat':'b-red',Chat:'b-gray',Other:'b-gray'};
+function renderStore(){
+  const plugins=gStore(),instIds=gInst().map(i=>i.id);
+  if(plugins.length===0){$('storeGrid').innerHTML='<div class="empty">No plugins in the store yet.</div>';return;}
+  $('storeGrid').innerHTML=plugins.map(p=>{
+    const isInst=instIds.includes(p.id);
+    return `<div class="pg-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:7px">
+        <div><div class="pg-name">${esc(p.name)}</div><div class="pg-author">by ${esc(p.author)}</div></div>
+        <span class="badge ${catColor[p.category]||'b-gray'}" style="flex-shrink:0">${esc(p.category)}</span>
+      </div>
+      <div class="pg-desc">${esc(p.desc)}</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="badge b-gray">Latest: v${esc(p.versions[0])}</span>
+        <span style="color:#9ca3af;font-size:11px">${p.versions.length} version${p.versions.length!==1?'s':''}</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        ${isInst?'<span class="badge b-green">Installed</span>':`<button class="btn btn-blue btn-sm" onclick="openInstall(${p.id})">Install</button>`}
+        ${ME&&ME.role==='creator'?`<button class="xs xs-red" onclick="deleteStorePlugin(${p.id})">Remove</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteStorePlugin(id){
+  if(!confirm('Remove this plugin from the store?'))return;
+  sStore(gStore().filter(p=>p.id!==id));renderStore();renderInstalled();showAlert('Plugin removed from store.','warning');
+}
+
+function openInstall(id){
+  const p=gStore().find(x=>x.id===id);if(!p)return;
+  installTarget=p;
+  $('instModalTitle').textContent='Install '+p.name;
+  $('instModalDesc').textContent=p.desc;
+  $('instModalAuthor').textContent='Author: '+p.author;
+  $('instVersion').innerHTML=p.versions.map(v=>`<option value="${esc(v)}">v${esc(v)}</option>`).join('');
+  openM('mInstall');
+}
+
+function confirmInstall(){
+  if(!installTarget)return;
+  const ver=$('instVersion').value;
+  const inst=gInst();
+  if(inst.find(x=>x.id===installTarget.id)){showAlert('Already installed.','warning');closeM('mInstall');return;}
+  inst.push({id:installTarget.id,name:installTarget.name,version:ver,author:installTarget.author,installedBy:ME.username,installedAt:new Date().toLocaleDateString(),status:'enabled',source:'store'});
+  sInst(inst);
+  files.push({name:installTarget.name.toLowerCase().replace(/\s/g,'')+'-'+ver+'.jar',dir:false,size:'~1 MB',mod:'Just now'});
+  logAdd('INFO',`[PluginManager] Loading plugin ${installTarget.name} v${ver}`);
+  logAdd('INFO',`[${installTarget.name}] Enabling ${installTarget.name} v${ver}`);
+  addActivity('Installed plugin: '+installTarget.name,ME.username,ACTIVE?ACTIVE.name:'-','Just now');
+  renderFiles();renderStore();renderInstalled();
+  closeM('mInstall');showAlert(`${installTarget.name} v${ver} installed!`,'success');
+  installTarget=null;
+}
+
+function submitStorePlugin(){
+  const name=$('mp-name').value.trim(),desc=$('mp-desc').value.trim(),author=$('mp-author').value.trim(),ver=$('mp-ver').value.trim(),cat=$('mp-cat').value;
+  if(!name||!desc||!author||!ver){showAlert('Please fill in all fields.','error');return;}
+  const plugins=gStore(),ex=plugins.find(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(ex){if(!ex.versions.includes(ver))ex.versions.unshift(ver);sStore(plugins);showAlert('Version v'+ver+' added to '+name,'success');}
+  else{plugins.push({id:Date.now(),name,desc,author,versions:[ver],category:cat});sStore(plugins);showAlert(name+' v'+ver+' uploaded to store!','success');}
+  closeM('mCreatorUpload');
+  ['mp-name','mp-desc','mp-author','mp-ver'].forEach(id=>$(id).value='');
+  renderStore();renderOverview();
+}
+
+// ══════════════════════════════ INSTALLED PLUGINS
+function renderInstalled(){
+  const all=[...gInst(),...gUserPl()];
+  $('instTitle2').textContent=`Installed Plugins (${all.length})`;
+  if(all.length===0){$('installedRows').innerHTML='<tr><td colspan="6" class="empty" style="text-align:center">No plugins installed yet.</td></tr>';return;}
+  $('installedRows').innerHTML=all.map((p,i)=>`<tr>
+    <td style="font-weight:600;color:#111827">${esc(p.name)}</td>
+    <td style="color:#9ca3af;font-family:monospace;font-size:12px">v${esc(p.version)}</td>
+    <td style="color:#6b7280">${esc(p.installedBy||'-')}</td>
+    <td><span class="badge ${p.source==='user'?'b-purple':'b-blue'}">${p.source==='user'?'Custom':'Store'}</span></td>
+    <td><span class="badge ${p.status==='enabled'?'b-green':'b-gray'}">${p.status==='enabled'?'Enabled':'Disabled'}</span></td>
+    <td><div style="display:flex;gap:5px">
+      <button onclick="toggleInstalled(${i})" class="xs ${p.status==='enabled'?'xs-amber':'xs-green'}">${p.status==='enabled'?'Disable':'Enable'}</button>
+      <button onclick="removeInstalled(${i})" class="xs xs-red">Uninstall</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function toggleInstalled(i){
+  const st=gInst(),up=gUserPl(),all=[...st,...up];
+  const p=all[i];if(!p)return;
+  p.status=p.status==='enabled'?'disabled':'enabled';
+  if(i<st.length){st[i]=p;sInst(st);}else{up[i-st.length]=p;sUserPl(up);}
+  renderInstalled();
+}
+
+function removeInstalled(i){
+  if(!confirm('Uninstall this plugin?'))return;
+  const st=gInst(),up=gUserPl();
+  let name;
+  if(i<st.length){name=st[i].name;st.splice(i,1);sInst(st);}
+  else{const j=i-st.length;name=up[j].name;up.splice(j,1);sUserPl(up);}
+  renderInstalled();renderStore();showAlert((name||'Plugin')+' uninstalled.','warning');
+}
+
+function handleUserUpload(input){
+  if(!input.files.length)return;
+  const file=input.files[0];
+  if(!file.name.endsWith('.jar')){showAlert('Only .jar files are accepted.','error');return;}
+  const up=gUserPl();
+  const pl={name:file.name.replace('.jar',''),version:'custom',author:ME.username,installedBy:ME.username,installedAt:new Date().toLocaleDateString(),status:'enabled',source:'user'};
+  up.push(pl);sUserPl(up);
+  files.push({name:file.name,dir:false,size:(file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB'),mod:'Just now'});
+  logAdd('INFO',`[PluginManager] Loading plugin ${pl.name}`);
+  logAdd('INFO',`[${pl.name}] Plugin enabled successfully.`);
+  addActivity('Uploaded plugin: '+pl.name,ME.username,ACTIVE?ACTIVE.name:'-','Just now');
+  renderFiles();renderInstalled();
+  $('uploadResult').innerHTML=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="color:#166534;font-size:13px;font-weight:600">${esc(pl.name)}</div><div style="color:#9ca3af;font-size:11px;margin-top:2px">Installed — check the Installed tab</div></div><span class="badge b-green">Active</span></div>`;
+  input.value='';showAlert(pl.name+' uploaded and installed!','success');
+}
+
+// ══════════════════════════════ ADMIN SECTIONS
+function renderOverview(){
+  $('ov-srvs').textContent=gServers().length;
+  $('ov-usrs').textContent=gUsers().length;
+  $('ov-pls').textContent=gStore().length;
+  const act=gActivity();
+  $('actRows').innerHTML=act.slice().reverse().slice(0,15).map(a=>`<tr><td>${esc(a.action)}</td><td style="color:#6b7280">${esc(a.user)}</td><td style="color:#6b7280">${esc(a.server)}</td><td style="color:#9ca3af;white-space:nowrap">${esc(a.time)}</td></tr>`).join('');
+}
+function addActivity(action,user,server,time){const a=gActivity();a.push({action,user,server,time});sActivity(a.slice(-30));}
+
+function renderAllServers(){
+  const srvs=gServers();
+  $('allSrvTitle').textContent=`All Servers (${srvs.length})`;
+  $('srvCount').textContent=srvs.length;
+  $('allSrvRows').innerHTML=srvs.length===0
+    ?'<tr><td colspan="5" class="empty" style="text-align:center">No servers yet.</td></tr>'
+    :srvs.map(s=>`<tr>
+        <td style="font-weight:600;color:#111827">${esc(s.name)}</td>
+        <td><span class="badge b-blue">${esc(s.engine)} ${esc(s.version)}</span></td>
+        <td style="font-family:monospace;font-size:12px;color:#6b7280">${esc(s.host)}:${s.port}</td>
+        <td><span class="badge ${s.online?'b-green':'b-gray'}">${s.online?'Online':'Offline'}</span></td>
+        <td><div style="display:flex;gap:5px">
+          <button class="xs xs-blue" onclick="switchServer(${s.id})">Select</button>
+          <button class="xs xs-red" onclick="deleteServer(${s.id})">Delete</button>
+        </div></td>
+      </tr>`).join('');
+}
+
+function renderUsersTable(){
+  const users=gUsers();
+  $('usrsTitle').textContent=`All Users (${users.length})`;
+  $('usrCount').textContent=users.length;
+  $('usrsRows').innerHTML=users.map(u=>`<tr>
+    <td style="font-weight:600;color:#111827">${esc(u.username)}</td>
+    <td style="color:#6b7280">${esc(u.email)}</td>
+    <td>${u.role==='creator'?'<span class="role-creator">CREATOR</span>':'<span class="role-user">USER</span>'}</td>
+    <td>${u.role!=='creator'?`<button class="xs xs-red" onclick="deleteUser('${esc(u.username)}')">Delete</button>`:'<span style="color:#9ca3af;font-size:12px">Protected</span>'}</td>
+  </tr>`).join('');
+}
+function deleteUser(username){
+  if(!confirm('Delete user '+username+'?'))return;
+  sUsers(gUsers().filter(u=>u.username!==username));
+  renderUsersTable();showAlert('User deleted.','warning');
+}
+
+function renderApiKeys(){
+  $('apiRows').innerHTML=apiKeys.map((k,i)=>`<tr>
+    <td style="font-weight:600;color:#111827">${esc(k.name)}</td>
+    <td style="font-family:monospace;font-size:12px;color:#6b7280">${esc(k.token)}</td>
+    <td><span class="badge b-blue">${esc(k.perms)}</span></td>
+    <td style="color:#9ca3af">${esc(k.created)}</td>
+    <td><button class="xs xs-red" onclick="apiKeys.splice(${i},1);renderApiKeys()">Revoke</button></td>
+  </tr>`).join('');
+}
+function addApiKey(){const name=prompt('API key name:');if(!name)return;apiKeys.push({name,token:'ptla_'+Math.random().toString(36).slice(2,22),perms:'Read Only',created:new Date().toISOString().slice(0,10)});renderApiKeys();}
+
+// ══════════════════════════════ FTP
+function openFTP(){loadFtpFields(ACTIVE);openM('mFtp');}
+function loadFtpFields(s){
+  if(!s)return;
+  $('ftp-host').value=s.ftpHost||'';$('ftp-port').value=s.ftpPort||2022;
+  $('ftp-user').value=s.ftpUser||'';$('ftp-pass').value=s.ftpPass||'';$('ftp-path').value=s.ftpPath||'';
+  $('ftpCurrentInfo').innerHTML=s.ftpHost
+    ?`<div class="ftp-info"><span class="k">Protocol:</span>  SFTP<br><span class="k">Host:</span>      ${esc(s.ftpHost)}<br><span class="k">Port:</span>      ${s.ftpPort||2022}<br><span class="k">Username:</span>  ${esc(s.ftpUser||'—')}<br><span class="k">Password:</span>  ${s.ftpPass?'••••••••••••':'—'}<br><span class="k">Path:</span>      ${esc(s.ftpPath||'/')}</div>`
+    :`<div style="color:#9ca3af;font-size:13px;padding:6px 0;margin-bottom:4px">No SFTP configured for this server yet.</div>`;
+}
+function saveFtp(){
+  if(!ACTIVE)return;
+  ACTIVE.ftpHost=$('ftp-host').value.trim();ACTIVE.ftpPort=parseInt($('ftp-port').value)||2022;
+  ACTIVE.ftpUser=$('ftp-user').value.trim();ACTIVE.ftpPass=$('ftp-pass').value;ACTIVE.ftpPath=$('ftp-path').value.trim();
+  const srvs=gServers();const i=srvs.findIndex(s=>s.id===ACTIVE.id);if(i>=0){srvs[i]=ACTIVE;sServers(srvs);}
+  loadFtpFields(ACTIVE);showAlert('SFTP config saved!','success');
+}
+
+// ══════════════════════════════ POWER
+function handlePower(){
+  const t=new Date().toTimeString().slice(0,8);
+  if(serverOnline){serverOnline=false;$('statusDot').className='sdot off';$('statusTxt').textContent='Offline';$('powerBtn').textContent='Start';$('powerBtn').className='btn btn-green btn-sm';$('uptimeSub').textContent='Offline';$('drawerDot').className='sdot off';$('connBadge').textContent='Offline';$('connBadge').className='badge b-red';logAdd('WARN','[Server]: Stopping the server...');logAdd('INFO','[Server]: Server stopped.');showAlert('Server stopped.','warning');}
+  else{serverOnline=true;$('statusDot').className='sdot on';$('statusTxt').textContent='Online';$('powerBtn').textContent='Stop';$('powerBtn').className='btn btn-red btn-sm';$('uptimeSub').textContent='Running';$('drawerDot').className='sdot on';$('connBadge').textContent='Online';$('connBadge').className='badge b-green';logAdd('INFO','[Server]: Starting server...');logAdd('INFO','[Server]: Done! For help, type "help"');showAlert('Server online!','success');}
+}
+function handleRestart(){logAdd('WARN','[Server]: Restart initiated...');showAlert('Restarting...','warning');}
+
+// ══════════════════════════════ LIVE STATS
+setInterval(()=>{
+  if(serverOnline){cpu=Math.max(10,Math.min(90,cpu+(Math.random()-.5)*8));ram=Math.max(30,Math.min(95,ram+(Math.random()-.5)*4));uptimeSec++;}
+  $('cpuVal').textContent=Math.round(cpu)+'%';$('cpuBar').style.width=Math.round(cpu)+'%';
+  $('ramVal').textContent=Math.round(ram)+'%';$('ramBar').style.width=Math.round(ram)+'%';
+  const h=Math.floor(uptimeSec/3600),m=Math.floor((uptimeSec%3600)/60),s=uptimeSec%60;
+  $('uptimeVal').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+},2000);
+
+// ══════════════════════════════ RENDER ALL
+function doPing(id){const s=gServers().find(x=>x.id===id);if(!s)return;showAlert('Pinging '+s.name+'...','info');pingServer(s);}
+function renderAll(){renderConsole();renderFiles();renderPlayers();renderStore();renderInstalled();renderServerList();renderAllServers();renderOverview();}
+</script>
+</body>
+</html>
