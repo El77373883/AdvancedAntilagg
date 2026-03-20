@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AdvancedAntiLagg — Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--sidebar:#161b27;--card:#1c2333;--card2:#212840;
+  --border:#2a3450;--border2:#3a4a6b;
+  --accent:#00b4d8;--accent2:#0077b6;--green:#22c55e;--red:#ef4444;
+  --yellow:#f59e0b;--purple:#a855f7;
+  --text:#e2e8f0;--muted:#64748b;--muted2:#94a3b8;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ══════════════════════════════
+   AUTH SCREENS
+══════════════════════════════ */
+#auth-wrap{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);z-index:200;
+}
+#auth-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(0,180,216,.08),transparent);
+  pointer-events:none;
+}
+.auth-box{
+  width:min(420px,94vw);background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:2.5rem 2rem;position:relative;
+}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo .logo-icon{
+  width:52px;height:52px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:.8rem;box-shadow:0 0 24px rgba(0,180,216,.3);
+}
+.auth-logo h1{font-size:1.4rem;font-weight:700;color:var(--text)}
+.auth-logo p{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.auth-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;background:var(--bg);border-radius:8px;padding:.3rem}
+.auth-tab{
+  flex:1;padding:.5rem;text-align:center;border-radius:6px;cursor:pointer;
+  font-size:.83rem;font-weight:500;color:var(--muted);transition:all .2s;border:none;background:none;
+}
+.auth-tab.active{background:var(--card2);color:var(--text)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:.75rem;font-weight:600;color:var(--muted2);margin-bottom:.4rem;letter-spacing:.04em;text-transform:uppercase}
+.field input{
+  width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:var(--font);font-size:.88rem;padding:.65rem .9rem;border-radius:8px;outline:none;transition:border-color .2s;
+}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--muted)}
+.btn{
+  width:100%;padding:.7rem;border-radius:8px;border:none;cursor:pointer;
+  font-family:var(--font);font-size:.88rem;font-weight:600;transition:all .2s;
+}
+.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,180,216,.3)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-success{background:var(--green);color:#fff}
+.auth-footer{text-align:center;margin-top:1rem;font-size:.78rem;color:var(--muted)}
+.auth-footer a{color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:6px;padding:.5rem .8rem;font-size:.78rem;margin-bottom:1rem;display:none}
+.auth-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);border-radius:6px;padding:.5rem .8rem;font-size:.78rem;margin-bottom:1rem;display:none}
+
+/* ══════════════════════════════
+   MAIN APP LAYOUT
+══════════════════════════════ */
+#app{display:none;height:100vh;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:56px;background:var(--sidebar);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1.2rem;gap:1rem;flex-shrink:0;z-index:50;
+}
+.topbar-logo{display:flex;align-items:center;gap:.6rem;margin-right:1rem}
+.topbar-logo .logo-sm{
+  width:32px;height:32px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;
+}
+.topbar-logo span{font-weight:700;font-size:.95rem;color:var(--text)}
+.topnav{display:flex;gap:.2rem;flex:1;overflow-x:auto}
+.topnav::-webkit-scrollbar{height:0}
+.nav-item{
+  display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:6px;
+  cursor:pointer;color:var(--muted);font-size:.82rem;font-weight:500;transition:all .2s;
+  white-space:nowrap;border:none;background:none;
+}
+.nav-item:hover{color:var(--text);background:var(--card)}
+.nav-item.active{color:var(--accent);background:rgba(0,180,216,.1)}
+.nav-item .nav-icon{font-size:1rem}
+.topbar-right{display:flex;align-items:center;gap:.8rem;margin-left:auto}
+.user-badge{
+  display:flex;align-items:center;gap:.5rem;padding:.35rem .7rem;
+  background:var(--card);border-radius:8px;border:1px solid var(--border);cursor:pointer;
+}
+.user-badge .avatar{
+  width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--purple),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;
+}
+.user-badge .uname{font-size:.8rem;font-weight:600;color:var(--text)}
+.admin-chip{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);border-radius:4px;font-size:.65rem;font-weight:700;padding:.1rem .4rem;letter-spacing:.05em}
+.btn-sm{
+  padding:.35rem .8rem;border-radius:6px;border:none;cursor:pointer;
+  font-family:var(--font);font-size:.78rem;font-weight:600;transition:all .2s;
+}
+
+/* ── MAIN CONTENT ── */
+.app-body{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.page{display:none;height:100%;overflow-y:auto;padding:1.5rem}
+.page.active{display:block}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:1.5rem}
+.page-header h2{font-size:1.3rem;font-weight:700;color:var(--text)}
+.page-header p{font-size:.82rem;color:var(--muted);margin-top:.2rem}
+.page-header-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;margin-bottom:1.5rem}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.card-title{font-size:.82rem;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.1rem 1.2rem;display:flex;align-items:center;gap:1rem;
+}
+.stat-icon{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.stat-icon.blue{background:rgba(0,180,216,.15)}
+.stat-icon.green{background:rgba(34,197,94,.15)}
+.stat-icon.yellow{background:rgba(245,158,11,.15)}
+.stat-icon.red{background:rgba(239,68,68,.15)}
+.stat-icon.purple{background:rgba(168,85,247,.15)}
+.stat-val{font-size:1.6rem;font-weight:700;line-height:1;font-family:var(--mono)}
+.stat-val.blue{color:var(--accent)}
+.stat-val.green{color:var(--green)}
+.stat-val.yellow{color:var(--yellow)}
+.stat-val.red{color:var(--red)}
+.stat-val.purple{color:var(--purple)}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-top:.5rem}
+.prog-row{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.25rem}
+.prog-bg{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 1s}
+.prog-fill.blue{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.prog-fill.green{background:linear-gradient(90deg,#16a34a,var(--green))}
+.prog-fill.yellow{background:linear-gradient(90deg,#d97706,var(--yellow))}
+.prog-fill.red{background:linear-gradient(90deg,#dc2626,var(--red))}
+
+/* ── TPS CHART ── */
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1.5rem}
+.chart-wrap{height:120px;position:relative;margin-top:.8rem}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:.7rem 1rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.75rem 1rem;font-size:.82rem;border-bottom:1px solid rgba(42,52,80,.5);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:last-child td{border-bottom:none}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:600}
+.badge.green{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.badge.red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.badge.yellow{background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.badge.blue{background:rgba(0,180,216,.1);color:var(--accent);border:1px solid rgba(0,180,216,.2)}
+.badge.purple{background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
+
+/* ── CONSOLE ── */
+.console-wrap{
+  background:#0a0d12;border:1px solid var(--border);border-radius:10px;
+  font-family:var(--mono);font-size:.78rem;height:420px;display:flex;flex-direction:column;
+}
+.console-body{flex:1;overflow-y:auto;padding:1rem;line-height:1.7}
+.console-line{margin-bottom:.1rem}
+.con-info{color:#94a3b8}
+.con-warn{color:var(--yellow)}
+.con-error{color:var(--red)}
+.con-success{color:var(--green)}
+.con-accent{color:var(--accent)}
+.console-input-row{
+  display:flex;gap:.5rem;padding:.6rem .8rem;border-top:1px solid var(--border);
+}
+.console-input{
+  flex:1;background:transparent;border:none;color:var(--green);font-family:var(--mono);
+  font-size:.78rem;outline:none;
+}
+.console-input::placeholder{color:var(--muted)}
+
+/* ── PLUGIN CARDS ── */
+.plugins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.plugin-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.1rem;transition:border-color .2s;
+}
+.plugin-card:hover{border-color:var(--border2)}
+.plugin-card-header{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:.8rem}
+.plugin-icon{
+  width:44px;height:44px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:1.3rem;flex-shrink:0;
+}
+.plugin-name{font-size:.92rem;font-weight:700;color:var(--text)}
+.plugin-author{font-size:.72rem;color:var(--muted);margin-top:.15rem}
+.plugin-desc{font-size:.78rem;color:var(--muted2);margin-bottom:.9rem;line-height:1.5}
+.plugin-footer{display:flex;align-items:center;justify-content:space-between}
+.plugin-version{font-family:var(--mono);font-size:.7rem;color:var(--muted);background:var(--bg);padding:.2rem .5rem;border-radius:4px}
+.btn-install{
+  padding:.35rem .9rem;border-radius:6px;border:none;cursor:pointer;
+  font-family:var(--font);font-size:.75rem;font-weight:600;transition:all .2s;
+}
+.btn-install.install{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-install.install:hover{background:var(--green);color:#fff}
+.btn-install.installed{background:rgba(100,116,139,.1);color:var(--muted);border:1px solid var(--border);cursor:default}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone{
+  border:2px dashed var(--border2);border-radius:10px;padding:2.5rem;
+  text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,180,216,.04)}
+.upload-zone .upload-icon{font-size:2.5rem;margin-bottom:.8rem}
+.upload-zone h3{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.upload-zone p{font-size:.78rem;color:var(--muted)}
+#file-input{display:none}
+
+/* ── ADD SERVER FORM ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.form-field label{display:block;font-size:.73rem;font-weight:600;color:var(--muted2);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em}
+.form-field input,.form-field select{
+  width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:var(--font);font-size:.85rem;padding:.6rem .8rem;border-radius:8px;outline:none;transition:border-color .2s;
+}
+.form-field input:focus,.form-field select:focus{border-color:var(--accent)}
+.form-field select option{background:var(--card)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.8rem 0;border-bottom:1px solid var(--border)}
+.toggle-label{font-size:.85rem;font-weight:500;color:var(--text)}
+.toggle-sub{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--border2);border-radius:24px;cursor:pointer;transition:.3s;
+}
+.toggle-slider::before{
+  content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.3s;
+}
+.toggle input:checked + .toggle-slider{background:var(--accent)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(18px)}
+
+/* ── USER TABLE ── */
+.user-row-actions{display:flex;gap:.4rem}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  z-index:100;display:flex;align-items:center;justify-content:center;display:none;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  width:min(480px,92vw);padding:1.8rem;max-height:90vh;overflow-y:auto;
+}
+.modal h3{font-size:1.05rem;font-weight:700;margin-bottom:1.2rem;color:var(--text)}
+.modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.5rem}
+.btn-cancel{padding:.55rem 1.1rem;border-radius:7px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-family:var(--font);font-size:.83rem;font-weight:500}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.btn-confirm{padding:.55rem 1.2rem;border-radius:7px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);font-size:.83rem;font-weight:600}
+.btn-confirm:hover{opacity:.9}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;
+  background:var(--card2);border:1px solid var(--border2);border-radius:8px;
+  padding:.7rem 1.1rem;font-size:.82rem;max-width:320px;
+  display:flex;align-items:center;gap:.6rem;
+  opacity:0;transform:translateY(16px);transition:all .3s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:rgba(34,197,94,.4)}
+.toast.error{border-color:rgba(239,68,68,.4)}
+.toast .t-icon{font-size:1rem}
+
+/* ── SERVER STATUS CARDS ── */
+.servers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+.server-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.2rem;transition:border-color .2s;
+}
+.server-card:hover{border-color:var(--border2)}
+.server-header{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
+.server-icon{
+  width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+}
+.server-name{font-size:.92rem;font-weight:700;color:var(--text)}
+.server-ip{font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:.1rem}
+.server-stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.8rem 0}
+.server-stat{background:var(--bg);border-radius:7px;padding:.6rem .8rem}
+.server-stat-val{font-size:1rem;font-weight:700;font-family:var(--mono);color:var(--accent)}
+.server-stat-label{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.server-actions{display:flex;gap:.5rem;margin-top:.8rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .page{padding:1rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .topnav .nav-item span{display:none}
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page.active{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ AUTH ══════════════ -->
+<div id="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">⚡</div>
+      <h1>AdvancedAntiLagg</h1>
+      <p>Panel de Administración Premium</p>
+    </div>
+
+    <!-- AUTH TABS -->
+    <div class="auth-tabs" id="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Iniciar Sesión</button>
+      <button class="auth-tab" onclick="switchTab('register')">Registrarse</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+
+    <!-- LOGIN -->
+    <div id="tab-login">
+      <div class="field"><label>Usuario o Email</label><input type="text" id="l-user" placeholder="usuario o email"/></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="btn btn-primary" onclick="doLogin()">Iniciar Sesión</button>
+      <div class="auth-footer"><a onclick="switchTab('forgot')">¿Olvidaste tu contraseña?</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="tab-register" style="display:none">
+      <div class="field"><label>Nombre de usuario</label><input type="text" id="r-user" placeholder="tuusuario"/></div>
+      <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="tu@email.com"/></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="r-pass" placeholder="mínimo 6 caracteres"/></div>
+      <button class="btn btn-primary" onclick="doRegister()">Crear Cuenta</button>
+    </div>
+
+    <!-- FORGOT -->
+    <div id="tab-forgot" style="display:none">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Ingresa tu email y te enviaremos un código de recuperación.</p>
+      <div class="field"><label>Email</label><input type="email" id="f-email" placeholder="tu@email.com"/></div>
+      <button class="btn btn-primary" onclick="doForgot()">Enviar Código</button>
+      <div id="forgot-code-wrap" style="display:none;margin-top:1rem">
+        <div class="field"><label>Código de verificación</label><input type="text" id="f-code" placeholder="123456"/></div>
+        <div class="field"><label>Nueva contraseña</label><input type="password" id="f-newpass" placeholder="••••••••"/></div>
+        <button class="btn btn-success" onclick="doReset()">Cambiar Contraseña</button>
+      </div>
+      <div class="auth-footer"><a onclick="switchTab('login')">← Volver al login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app" style="display:none;flex-direction:column;height:100vh">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-sm">⚡</div>
+      <span>AAG Panel</span>
+    </div>
+    <nav class="topnav">
+      <button class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="showPage('servers')" data-page="servers">
+        <span class="nav-icon">🖥️</span><span>Servidores</span>
+      </button>
+      <button class="nav-item" onclick="showPage('console')" data-page="console">
+        <span class="nav-icon">💻</span><span>Consola</span>
+      </button>
+      <button class="nav-item" onclick="showPage('plugins')" data-page="plugins">
+        <span class="nav-icon">🧩</span><span>Plugins</span>
+      </button>
+      <button class="nav-item" onclick="showPage('upload')" data-page="upload" id="nav-upload" style="display:none">
+        <span class="nav-icon">📤</span><span>Subir Plugin</span>
+      </button>
+      <button class="nav-item" onclick="showPage('users')" data-page="users" id="nav-users" style="display:none">
+        <span class="nav-icon">👥</span><span>Usuarios</span>
+      </button>
+      <button class="nav-item" onclick="showPage('logs')" data-page="logs">
+        <span class="nav-icon">📋</span><span>Logs</span>
+      </button>
+      <button class="nav-item" onclick="showPage('settings')" data-page="settings">
+        <span class="nav-icon">⚙️</span><span>Config</span>
+      </button>
+    </nav>
+    <div class="topbar-right">
+      <div class="user-badge" onclick="showPage('settings')">
+        <div class="avatar" id="avatar-text">A</div>
+        <span class="uname" id="topbar-uname">Admin</span>
+        <span class="admin-chip" id="admin-chip" style="display:none">ADMIN</span>
+      </div>
+      <button class="btn-sm btn-primary" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="app-body">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header-row">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <p>Estado en tiempo real de tu servidor</p>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <span id="server-status-top" class="badge green">● ONLINE</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📊</div>
+          <div><div class="stat-val blue" id="d-tps">20.0</div><div class="stat-label">TPS Actual</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">👥</div>
+          <div><div class="stat-val green" id="d-players">0</div><div class="stat-label">Jugadores</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">🧠</div>
+          <div><div class="stat-val yellow" id="d-ram">0%</div><div class="stat-label">RAM Usada</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">⚙️</div>
+          <div><div class="stat-val red" id="d-cpu">0%</div><div class="stat-label">CPU</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">🧹</div>
+          <div><div class="stat-val purple" id="d-cleans">0</div><div class="stat-label">Limpiezas Hoy</div></div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="card-header">
+          <span class="card-title">📈 Historial TPS — Últimas 24h</span>
+          <span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)" id="chart-time">--:--:--</span>
+        </div>
+        <div class="chart-wrap"><canvas id="tps-canvas"></canvas></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+        <div class="card">
+          <div class="card-header"><span class="card-title">💾 Recursos</span></div>
+          <div class="prog-wrap">
+            <div class="prog-row"><span>RAM</span><span id="ram-label">0 MB / 0 MB</span></div>
+            <div class="prog-bg" style="margin-bottom:.8rem"><div class="prog-fill yellow" id="ram-bar" style="width:0%"></div></div>
+            <div class="prog-row"><span>CPU</span><span id="cpu-label">0%</span></div>
+            <div class="prog-bg" style="margin-bottom:.8rem"><div class="prog-fill red" id="cpu-bar" style="width:0%"></div></div>
+            <div class="prog-row"><span>Chunks cargados</span><span id="chunks-label">0</span></div>
+            <div class="prog-bg"><div class="prog-fill blue" id="chunks-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">👥 Jugadores Online</span></div>
+          <div id="players-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:160px;overflow-y:auto">
+            <div style="font-size:.78rem;color:var(--muted);text-align:center;padding:1rem">Sin jugadores conectados</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚡ Acciones Rápidas</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <button class="btn btn-success" style="font-size:.78rem;padding:.55rem" onclick="quickAction('clean')">🧹 Limpiar Todo</button>
+            <button class="btn btn-primary" style="font-size:.78rem;padding:.55rem" onclick="quickAction('gc')">🔧 Forzar GC</button>
+            <button class="btn" style="font-size:.78rem;padding:.55rem;background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)" onclick="quickAction('chunks')">📦 Limpiar Chunks</button>
+            <button class="btn" style="font-size:.78rem;padding:.55rem;background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3)" onclick="quickAction('report')">📊 Reporte</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SERVERS ── -->
+    <div class="page" id="page-servers">
+      <div class="page-header-row">
+        <div class="page-header"><h2>Servidores</h2><p>Administra tus servidores Minecraft</p></div>
+        <button class="btn btn-primary btn-sm" onclick="openAddServer()">+ Agregar Servidor</button>
+      </div>
+      <div class="servers-grid" id="servers-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- ── CONSOLE ── -->
+    <div class="page" id="page-console">
+      <div class="page-header-row">
+        <div class="page-header"><h2>Consola</h2><p>Consola en tiempo real del servidor</p></div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn-sm" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:.35rem .8rem;cursor:pointer;font-size:.78rem" onclick="clearConsole()">🗑 Limpiar</button>
+        </div>
+      </div>
+      <div class="console-wrap">
+        <div class="console-body" id="console-body"></div>
+        <div class="console-input-row">
+          <span style="color:var(--accent);font-family:var(--mono);font-size:.78rem">$</span>
+          <input class="console-input" id="console-input" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter')sendConsoleCmd()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PLUGINS MARKETPLACE ── -->
+    <div class="page" id="page-plugins">
+      <div class="page-header-row">
+        <div class="page-header"><h2>Marketplace de Plugins</h2><p>Plugins verificados — instala con un clic</p></div>
+        <input type="text" id="plugin-search" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.5rem .9rem;font-size:.82rem;outline:none;width:220px" placeholder="🔍 Buscar plugin..." oninput="filterPlugins(this.value)"/>
+      </div>
+      <div class="plugins-grid" id="plugins-grid"></div>
+    </div>
+
+    <!-- ── UPLOAD PLUGIN (ADMIN ONLY) ── -->
+    <div class="page" id="page-upload">
+      <div class="page-header"><h2>Subir Plugin al Marketplace</h2><p>Solo el administrador puede subir plugins</p></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+        <div>
+          <div class="upload-zone" onclick="document.getElementById('file-input').click()" id="upload-zone">
+            <div class="upload-icon">📤</div>
+            <h3>Arrastra tu .jar aquí</h3>
+            <p>o toca para seleccionar</p>
+          </div>
+          <input type="file" id="file-input" accept=".jar" onchange="handleFileUpload(this)"/>
+          <div id="upload-preview" style="display:none;margin-top:1rem">
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:.8rem">
+                <span style="font-size:1.5rem">📦</span>
+                <div>
+                  <div style="font-weight:600;font-size:.88rem" id="up-filename">plugin.jar</div>
+                  <div style="font-size:.72rem;color:var(--muted)" id="up-filesize">0 KB</div>
+                </div>
+                <span class="badge green" style="margin-left:auto">✓ Listo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📝 Detalles del Plugin</span></div>
+          <div style="display:flex;flex-direction:column;gap:.8rem">
+            <div class="form-field"><label>Nombre del Plugin</label><input type="text" id="up-name" placeholder="MiPlugin"/></div>
+            <div class="form-field"><label>Versión</label><input type="text" id="up-version" placeholder="1.0.0"/></div>
+            <div class="form-field"><label>Autor</label><input type="text" id="up-author" placeholder="TuNombre"/></div>
+            <div class="form-field"><label>Descripción</label><input type="text" id="up-desc" placeholder="Descripción breve..."/></div>
+            <div class="form-field">
+              <label>Categoría</label>
+              <select id="up-cat">
+                <option value="optimization">⚡ Optimización</option>
+                <option value="security">🛡️ Seguridad</option>
+                <option value="economy">💰 Economía</option>
+                <option value="gameplay">🎮 Gameplay</option>
+                <option value="admin">⚙️ Administración</option>
+                <option value="fun">🎉 Diversión</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Versiones de MC compatibles</label>
+              <input type="text" id="up-mc" placeholder="1.21.1, 1.20.4, 1.19.4"/>
+            </div>
+            <button class="btn btn-primary" onclick="publishPlugin()">📤 Publicar en Marketplace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS (ADMIN ONLY) ── -->
+    <div class="page" id="page-users">
+      <div class="page-header-row">
+        <div class="page-header"><h2>Gestión de Usuarios</h2><p>Administra las cuentas del panel</p></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Servidores</th>
+                <th>Registro</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LOGS ── -->
+    <div class="page" id="page-logs">
+      <div class="page-header-row">
+        <div class="page-header"><h2>Logs del Sistema</h2><p>Errores, advertencias y eventos</p></div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn-sm" style="background:rgba(0,180,216,.1);color:var(--accent);border:1px solid rgba(0,180,216,.2);border-radius:6px;padding:.35rem .8rem;cursor:pointer;font-size:.78rem" onclick="filterLogs('all')">Todos</button>
+          <button class="btn-sm" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:.35rem .8rem;cursor:pointer;font-size:.78rem" onclick="filterLogs('error')">Errores</button>
+          <button class="btn-sm" style="background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:.35rem .8rem;cursor:pointer;font-size:.78rem" onclick="filterLogs('warn')">Warnings</button>
+          <button class="btn-sm" style="background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);border-radius:6px;padding:.35rem .8rem;cursor:pointer;font-size:.78rem" onclick="filterLogs('hack')">Hacks</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hora</th><th>Tipo</th><th>Mensaje</th><th>Servidor</th></tr></thead>
+            <tbody id="logs-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="page-settings">
+      <div class="page-header"><h2>Configuración</h2><p>Personaliza el panel y el plugin</p></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+        <div class="card">
+          <div class="card-header"><span class="card-title">👤 Mi Cuenta</span></div>
+          <div style="display:flex;flex-direction:column;gap:.8rem">
+            <div class="form-field"><label>Nombre de usuario</label><input type="text" id="s-uname"/></div>
+            <div class="form-field"><label>Email</label><input type="email" id="s-email"/></div>
+            <div class="form-field"><label>Nueva contraseña</label><input type="password" id="s-pass" placeholder="Dejar vacío para no cambiar"/></div>
+            <button class="btn btn-primary" style="font-size:.82rem" onclick="saveAccount()">Guardar Cambios</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔌 Conexión API</span></div>
+          <div style="display:flex;flex-direction:column;gap:.8rem">
+            <div class="form-field"><label>IP del Servidor</label><input type="text" id="s-api" placeholder="http://tu-ip:8080"/></div>
+            <div class="form-field"><label>Panel Key</label><input type="text" id="s-key" placeholder="AAG-XXXX-XXXX-XXXX"/></div>
+            <button class="btn btn-success" style="font-size:.82rem" onclick="testConn()">🔗 Probar Conexión</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚙️ Opciones del Plugin</span></div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto-limpieza</div><div class="toggle-sub">Limpiar ítems cada 2 minutos</div></div>
+            <label class="toggle"><input type="checkbox" id="t-autoclean" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Anti-crash</div><div class="toggle-sub">Detectar y prevenir crashes</div></div>
+            <label class="toggle"><input type="checkbox" id="t-anticrash" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Discord Webhook</div><div class="toggle-sub">Alertas en tu Discord</div></div>
+            <label class="toggle"><input type="checkbox" id="t-discord"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Modo Mantenimiento</div><div class="toggle-sub">Bloquear entrada al servidor</div></div>
+            <label class="toggle"><input type="checkbox" id="t-maint"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="form-field" style="margin-top:1rem"><label>TPS mínimo anti-lag</label><input type="number" value="15" min="1" max="20" id="s-tps"/></div>
+          <button class="btn btn-primary" style="font-size:.82rem;margin-top:.8rem" onclick="saveSettings()">Guardar Config</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL ADD SERVER -->
+<div class="modal-overlay" id="modal-server">
+  <div class="modal">
+    <h3>🖥️ Agregar Servidor</h3>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="form-field"><label>Nombre del servidor</label><input type="text" id="sv-name" placeholder="Mi Servidor SMP"/></div>
+      <div class="form-grid">
+        <div class="form-field"><label>IP del servidor</label><input type="text" id="sv-ip" placeholder="127.0.0.1"/></div>
+        <div class="form-field"><label>Puerto</label><input type="number" id="sv-port" placeholder="25565"/></div>
+      </div>
+      <div class="form-field"><label>RCON Password</label><input type="password" id="sv-rcon" placeholder="rconpassword"/></div>
+      <div class="toggle-row">
+        <div><div class="toggle-label">Usar FTP</div><div class="toggle-sub">Acceso de archivos por FTP (opcional)</div></div>
+        <label class="toggle"><input type="checkbox" id="sv-ftp" onchange="toggleFtp(this)"/><span class="toggle-slider"></span></label>
+      </div>
+      <div id="ftp-fields" style="display:none;display:flex;flex-direction:column;gap:.8rem">
+        <div class="form-grid">
+          <div class="form-field"><label>FTP Usuario</label><input type="text" id="sv-ftp-user" placeholder="ftpuser"/></div>
+          <div class="form-field"><label>FTP Contraseña</label><input type="password" id="sv-ftp-pass" placeholder="••••••"/></div>
+        </div>
+        <div class="form-field"><label>FTP Puerto</label><input type="number" id="sv-ftp-port" value="21"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-server')">Cancelar</button>
+      <button class="btn-confirm" onclick="addServer()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INSTALL PLUGIN -->
+<div class="modal-overlay" id="modal-install">
+  <div class="modal">
+    <h3 id="install-title">Instalar Plugin</h3>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.2rem" id="install-desc"></p>
+    <div class="form-field">
+      <label>Versión a instalar</label>
+      <select id="install-version"></select>
+    </div>
+    <div class="form-field">
+      <label>Instalar en servidor</label>
+      <select id="install-server"></select>
+    </div>
+    <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.8rem;font-size:.78rem;color:var(--yellow);margin-top:.5rem">
+      ⚠ El plugin se guardará en /plugins del servidor seleccionado y se instalará automáticamente al reiniciar.
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-install')">Cancelar</button>
+      <button class="btn-confirm" onclick="confirmInstall()">✅ Instalar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="t-icon">✅</span><span id="toast-msg"></span></div>
+
+<script>
+// ════════════════════════════════════════
+// DATA STORE (localStorage)
+// ════════════════════════════════════════
+const DB = {
+  get(k){ try{return JSON.parse(localStorage.getItem('aag_'+k))}catch{return null} },
+  set(k,v){ localStorage.setItem('aag_'+k,JSON.stringify(v)) },
+  del(k){ localStorage.removeItem('aag_'+k) }
+};
+
+// Init admin account if not exists
+function initDB(){
+  if(!DB.get('users')){
+    DB.set('users',[{
+      id:1, username:'Adrian2005@', email:'admin@aag.com',
+      password:'@Adrian2005', role:'admin',
+      servers:[], created:'2025-01-01', resetCode:null
+    }]);
+  }
+  if(!DB.get('marketplace')){
+    DB.set('marketplace', defaultPlugins());
+  }
+  if(!DB.get('servers')){
+    DB.set('servers',[]);
+  }
+  if(!DB.get('logs')){
+    DB.set('logs', defaultLogs());
+  }
+}
+
+function defaultPlugins(){
+  return [
+    {id:1,name:'EssentialsX',author:'EssentialsX Team',desc:'El plugin esencial para cualquier servidor. Comandos básicos, homes, warps y más.',version:'2.20.1',versions:['2.20.1','2.19.7','2.18.2'],category:'admin',icon:'🏠',color:'#0077b6',installed:false},
+    {id:2,name:'WorldEdit',author:'EngineHub',desc:'El editor de mundo más poderoso. Construye y edita con comandos.',version:'7.3.6',versions:['7.3.6','7.2.19','7.1.0'],category:'gameplay',icon:'⛏️',color:'#7c3aed',installed:false},
+    {id:3,name:'LuckPerms',author:'lucko',desc:'Sistema de permisos avanzado y flexible para tu servidor.',version:'5.4.137',versions:['5.4.137','5.4.102','5.3.98'],category:'admin',icon:'🔐',color:'#059669',installed:false},
+    {id:4,name:'Vault',author:'Vault Team',desc:'API de economía y permisos. Requerido por muchos plugins.',version:'1.7.3',versions:['1.7.3','1.7.2'],category:'economy',icon:'💰',color:'#d97706',installed:false},
+    {id:5,name:'AntiCheat Pro',author:'SecurityDev',desc:'Detección avanzada de hacks, fly, speed y más cheats.',version:'3.2.1',versions:['3.2.1','3.1.0'],category:'security',icon:'🛡️',color:'#dc2626',installed:false},
+    {id:6,name:'ClearLag',author:'LagFix',desc:'Limpieza automática de lag, entidades y chunks optimizado.',version:'3.2.2',versions:['3.2.2','3.1.6'],category:'optimization',icon:'⚡',color:'#00b4d8',installed:false},
+    {id:7,name:'WorldGuard',author:'EngineHub',desc:'Protege regiones de tu mundo con flags personalizables.',version:'7.0.10',versions:['7.0.10','7.0.9'],category:'security',icon:'🗺️',color:'#16a34a',installed:false},
+    {id:8,name:'Citizens',author:'fullwall',desc:'NPCs con IA para tu servidor. Crea personajes interactivos.',version:'2.0.35',versions:['2.0.35','2.0.33'],category:'gameplay',icon:'🧍',color:'#9333ea',installed:false},
+  ];
+}
+
+function defaultLogs(){
+  const now = new Date();
+  const fmt = (d) => d.toLocaleTimeString('es');
+  return [
+    {time:fmt(new Date(now-60000)),type:'error',msg:'NullPointerException in SomePlugin.java:142',server:'Mi Servidor'},
+    {time:fmt(new Date(now-120000)),type:'warn',msg:'Chunk load timeout en mundo world [45,-12]',server:'Mi Servidor'},
+    {time:fmt(new Date(now-180000)),type:'info',msg:'Anti-lag: 47 entidades eliminadas',server:'Mi Servidor'},
+    {time:fmt(new Date(now-240000)),type:'hack',msg:'Jugador Steve: movimiento sospechoso detectado (fly?)',server:'Mi Servidor'},
+    {time:fmt(new Date(now-300000)),type:'warn',msg:'TPS bajo: 14.2 — iniciando limpieza automática',server:'Mi Servidor'},
+    {time:fmt(new Date(now-360000)),type:'error',msg:'Plugin XYZ causó lag: 82ms en evento PlayerMove',server:'Mi Servidor'},
+    {time:fmt(new Date(now-420000)),type:'hack',msg:'Jugador Alex: posible duplication exploit detectado',server:'Mi Servidor'},
+    {time:fmt(new Date(now-480000)),type:'info',msg:'Backup automático completado: server_backup_2025.zip',server:'Mi Servidor'},
+  ];
+}
+
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+let currentUser = null;
+let forgotEmail = null;
+let forgotCode = null;
+let installTarget = null;
+
+function switchTab(t){
+  ['login','register','forgot'].forEach(tab=>{
+    document.getElementById('tab-'+tab).style.display = tab===t?'block':'none';
+    const btn = document.querySelector(`.auth-tab:nth-child(${tab==='login'?1:2})`);
+    if(btn) btn.classList.toggle('active', (tab==='login'&&t==='login')||(tab==='register'&&t==='register'));
+  });
+  clearAuthMsg();
+}
+
+function showAuthError(m){ const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; document.getElementById('auth-success').style.display='none'; }
+function showAuthSuccess(m){ const e=document.getElementById('auth-success'); e.textContent=m; e.style.display='block'; document.getElementById('auth-error').style.display='none'; }
+function clearAuthMsg(){ document.getElementById('auth-error').style.display='none'; document.getElementById('auth-success').style.display='none'; }
+
+function doLogin(){
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  if(!u||!p){ showAuthError('Completa todos los campos'); return; }
+  const users = DB.get('users')||[];
+  const user = users.find(x=>(x.username===u||x.email===u)&&x.password===p);
+  if(!user){ showAuthError('Usuario o contraseña incorrectos'); return; }
+  currentUser = user;
+  DB.set('session', user.id);
+  enterApp();
+}
+
+function doRegister(){
+  const u = document.getElementById('r-user').value.trim();
+  const e = document.getElementById('r-email').value.trim();
+  const p = document.getElementById('r-pass').value;
+  if(!u||!e||!p){ showAuthError('Completa todos los campos'); return; }
+  if(p.length<6){ showAuthError('La contraseña debe tener al menos 6 caracteres'); return; }
+  const users = DB.get('users')||[];
+  if(users.find(x=>x.username===u||x.email===e)){ showAuthError('Usuario o email ya registrado'); return; }
+  const newUser = {id:Date.now(),username:u,email:e,password:p,role:'user',servers:[],created:new Date().toLocaleDateString('es'),resetCode:null};
+  users.push(newUser);
+  DB.set('users',users);
+  showAuthSuccess('¡Cuenta creada! Ahora puedes iniciar sesión.');
+  switchTab('login');
+  document.getElementById('l-user').value = u;
+}
+
+function doForgot(){
+  const email = document.getElementById('f-email').value.trim();
+  if(!email){ showAuthError('Ingresa tu email'); return; }
+  const users = DB.get('users')||[];
+  const user = users.find(x=>x.email===email);
+  if(!user){ showAuthError('No se encontró una cuenta con ese email'); return; }
+  forgotEmail = email;
+  forgotCode = Math.floor(100000+Math.random()*900000).toString();
+  // In real app: send email. Here we show code in demo
+  showAuthSuccess(`Código enviado a ${email} — (Demo: ${forgotCode})`);
+  document.getElementById('forgot-code-wrap').style.display='block';
+}
+
+function doReset(){
+  const code = document.getElementById('f-code').value.trim();
+  const np = document.getElementById('f-newpass').value;
+  if(code!==forgotCode){ showAuthError('Código incorrecto'); return; }
+  if(np.length<6){ showAuthError('La contraseña debe tener al menos 6 caracteres'); return; }
+  const users = DB.get('users')||[];
+  const idx = users.findIndex(x=>x.email===forgotEmail);
+  users[idx].password = np;
+  DB.set('users',users);
+  showAuthSuccess('¡Contraseña cambiada! Ahora puedes iniciar sesión.');
+  switchTab('login');
+}
+
+function enterApp(){
+  document.getElementById('auth-wrap').style.display='none';
+  const app = document.getElementById('app');
+  app.style.display='flex';
+  // Setup UI for role
+  const isAdmin = currentUser.role==='admin';
+  document.getElementById('nav-upload').style.display = isAdmin?'flex':'none';
+  document.getElementById('nav-users').style.display = isAdmin?'flex':'none';
+  document.getElementById('admin-chip').style.display = isAdmin?'inline-flex':'none';
+  document.getElementById('topbar-uname').textContent = currentUser.username;
+  document.getElementById('avatar-text').textContent = currentUser.username[0].toUpperCase();
+  // Prefill settings
+  document.getElementById('s-uname').value = currentUser.username;
+  document.getElementById('s-email').value = currentUser.email;
+  // Load data
+  loadServersPage();
+  loadPluginsGrid();
+  loadUsersTable();
+  loadLogsTable('all');
+  initChart();
+  startDemo();
+  addConsoleLog('info', '[AdvancedAntiLagg Premium] ⚡ Bienvenido al panel, '+currentUser.username+'!');
+  addConsoleLog('success', '[AdvancedAntiLagg Premium] Sistema iniciado correctamente — versión 1.0.0');
+}
+
+function doLogout(){
+  DB.del('session');
+  currentUser=null;
+  document.getElementById('auth-wrap').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+}
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`[data-page="${p}"]`)?.classList.add('active');
+}
+
+// ════════════════════════════════════════
+// CHART
+// ════════════════════════════════════════
+const tpsData = Array(60).fill(20);
+let chartInit = false;
+
+function initChart(){
+  if(chartInit) return; chartInit=true;
+  drawTpsChart();
+}
+
+function drawTpsChart(){
+  const c = document.getElementById('tps-canvas');
+  if(!c) return;
+  c.width = c.parentElement.offsetWidth||600;
+  c.height = 120;
+  const ctx = c.getContext('2d');
+  const w=c.width, h=c.height;
+  ctx.clearRect(0,0,w,h);
+  // grid
+  ctx.strokeStyle='rgba(42,52,80,.5)'; ctx.lineWidth=1;
+  [.25,.5,.75].forEach(p=>{ ctx.beginPath();ctx.moveTo(0,h*p);ctx.lineTo(w,h*p);ctx.stroke(); });
+  // labels
+  ctx.fillStyle='#64748b'; ctx.font='10px JetBrains Mono';
+  ['20','15','10','5'].forEach((l,i)=>ctx.fillText(l,4,h*i*.333+12));
+  const step = w/(tpsData.length-1);
+  // fill
+  const g=ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(0,180,216,.2)'); g.addColorStop(1,'rgba(0,180,216,0)');
+  ctx.beginPath();
+  tpsData.forEach((v,i)=>{ const x=i*step,y=h-(v/20)*h; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle=g; ctx.fill();
+  // line
+  ctx.beginPath(); ctx.strokeStyle='#00b4d8'; ctx.lineWidth=2;
+  tpsData.forEach((v,i)=>{ const x=i*step,y=h-(v/20)*h; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+}
+
+// ════════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════════
+let tick=0, cleanCount=0;
+const demoPlayers = [{name:'Steve',ping:32},{name:'Alex',ping:45},{name:'HeroBlast',ping:68}];
+
+function startDemo(){
+  setInterval(()=>{
+    tick++;
+    const tps = parseFloat((Math.min(20,Math.max(12,18.5+Math.sin(tick*.3)*2+Math.random()-.5))).toFixed(1));
+    const ram = Math.round(512+Math.sin(tick*.1)*80+Math.random()*20);
+    const ramT = 2048;
+    const cpu = Math.round(15+Math.sin(tick*.2)*8+Math.random()*5);
+    const chunks = Math.round(180+Math.random()*30);
+    const playerCount = Math.min(3,Math.floor(Math.random()*4));
+    
+    tpsData.push(tps); if(tpsData.length>60)tpsData.shift();
+    drawTpsChart();
+    
+    // Dashboard stats
+    const tpsEl = document.getElementById('d-tps');
+    tpsEl.textContent = tps;
+    tpsEl.className = 'stat-val '+(tps>=18?'blue':tps>=14?'yellow':'red');
+    document.getElementById('d-players').textContent = playerCount;
+    const ramPct = Math.round((ram/ramT)*100);
+    document.getElementById('d-ram').textContent = ramPct+'%';
+    document.getElementById('d-cpu').textContent = cpu+'%';
+    document.getElementById('d-cleans').textContent = cleanCount;
+    document.getElementById('chart-time').textContent = new Date().toLocaleTimeString('es');
+    
+    // Progress bars
+    document.getElementById('ram-label').textContent = ram+' MB / '+ramT+' MB';
+    document.getElementById('ram-bar').style.width = ramPct+'%';
+    document.getElementById('ram-bar').className = 'prog-fill '+(ramPct<60?'green':ramPct<80?'yellow':'red');
+    document.getElementById('cpu-label').textContent = cpu+'%';
+    document.getElementById('cpu-bar').style.width = cpu+'%';
+    document.getElementById('chunks-label').textContent = chunks;
+    document.getElementById('chunks-bar').style.width = Math.min(100,chunks/5)+'%';
+    
+    // Players
+    const pl = document.getElementById('players-list');
+    if(playerCount===0){
+      pl.innerHTML='<div style="font-size:.78rem;color:var(--muted);text-align:center;padding:1rem">Sin jugadores conectados</div>';
+    } else {
+      pl.innerHTML = demoPlayers.slice(0,playerCount).map(p=>
+        `<div style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;background:var(--bg);border-radius:6px;border-left:2px solid var(--green)">
+          <span style="color:var(--green);font-size:.8rem">●</span>
+          <span style="font-size:.8rem;flex:1">${p.name}</span>
+          <span style="font-size:.7rem;color:var(--muted);font-family:var(--mono)">${p.ping}ms</span>
+        </div>`).join('');
+    }
+    
+    // Server status
+    document.getElementById('server-status-top').textContent='● ONLINE';
+    document.getElementById('server-status-top').className='badge green';
+    
+    // Autoclear trigger
+    if(tick%48===0){
+      cleanCount++;
+      const items = Math.floor(Math.random()*200+50);
+      addConsoleLog('success',`[AdvancedAntiLagg] 🧹 Limpieza automática: ${items} ítems eliminados`);
+      addConsoleLog('info',`[AdvancedAntiLagg] TPS mejorado: ${(tps-1.2).toFixed(1)} → ${tps}`);
+      addLog('info','Limpieza automática: '+items+' ítems eliminados');
+      showToast('🧹 Limpieza automática: '+items+' ítems','success');
+    }
+    
+    // Random lag warning
+    if(tps<15 && Math.random()<.1){
+      addConsoleLog('warn',`[AdvancedAntiLagg] ⚠ TPS bajo: ${tps} — activando anti-lag`);
+      addLog('warn','TPS bajo detectado: '+tps);
+    }
+  },2500);
+  
+  // Console alive messages
+  setInterval(()=>{
+    const msgs=[
+      '[Server] Running on Java 21',
+      '[AdvancedAntiLagg] Monitor TPS activo ⚡',
+      '[AdvancedAntiLagg] RAM estable',
+      '[Server] Auto-save iniciado...',
+      '[AdvancedAntiLagg] Backup programado en 30min',
+    ];
+    addConsoleLog('info',msgs[Math.floor(Math.random()*msgs.length)]);
+  },8000);
+}
+
+// ════════════════════════════════════════
+// CONSOLE
+// ════════════════════════════════════════
+function addConsoleLog(type,msg){
+  const body = document.getElementById('console-body');
+  if(!body) return;
+  const cls = {info:'con-info',warn:'con-warn',error:'con-error',success:'con-success',accent:'con-accent'}[type]||'con-info';
+  const time = new Date().toLocaleTimeString('es');
+  const div = document.createElement('div');
+  div.className='console-line '+cls;
+  div.textContent=`[${time}] ${msg}`;
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+  // Keep max 200 lines
+  while(body.children.length>200) body.removeChild(body.firstChild);
+}
+
+function clearConsole(){ document.getElementById('console-body').innerHTML=''; }
+
+function sendConsoleCmd(){
+  const inp = document.getElementById('console-input');
+  const cmd = inp.value.trim();
+  if(!cmd) return;
+  addConsoleLog('accent','> '+cmd);
+  // Simulate responses
+  const responses = {
+    'help':'Comandos: /aag help, /aag tps, /aag stats, /aag clean, /aag reload',
+    'tps':'TPS actual: 19.8 (último minuto: 19.2)',
+    'stop':'⚠ Apagando servidor...',
+    'list':'Jugadores online: Steve, Alex (2/20)',
+    'say hi':'[Server] hi',
+  };
+  setTimeout(()=>{
+    addConsoleLog('info', responses[cmd.toLowerCase()]||`Comando enviado: ${cmd}`);
+  },300);
+  inp.value='';
+}
+
+// ════════════════════════════════════════
+// SERVERS
+// ════════════════════════════════════════
+function loadServersPage(){
+  const servers = DB.get('servers')||[];
+  const grid = document.getElementById('servers-grid');
+  if(servers.length===0){
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:.8rem">🖥️</div>
+      <div style="font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.3rem">No tienes servidores</div>
+      <div style="font-size:.78rem">Toca "+ Agregar Servidor" para empezar</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = servers.map(s=>`
+    <div class="server-card">
+      <div class="server-header">
+        <div class="server-icon">⚡</div>
+        <div>
+          <div class="server-name">${s.name}</div>
+          <div class="server-ip">${s.ip}:${s.port}</div>
+        </div>
+        <span class="badge green" style="margin-left:auto">● Online</span>
+      </div>
+      <div class="server-stats">
+        <div class="server-stat"><div class="server-stat-val">19.8</div><div class="server-stat-label">TPS</div></div>
+        <div class="server-stat"><div class="server-stat-val">2/20</div><div class="server-stat-label">Jugadores</div></div>
+        <div class="server-stat"><div class="server-stat-val">42%</div><div class="server-stat-label">RAM</div></div>
+        <div class="server-stat"><div class="server-stat-val">18%</div><div class="server-stat-label">CPU</div></div>
+      </div>
+      <div class="server-actions">
+        <button class="btn btn-primary" style="font-size:.75rem;padding:.4rem .8rem;flex:1" onclick="showPage('console')">💻 Consola</button>
+        <button class="btn" style="font-size:.75rem;padding:.4rem .8rem;flex:1;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)" onclick="deleteServer(${s.id})">🗑 Eliminar</button>
+      </div>
+      ${s.ftp?`<div style="margin-top:.5rem;font-size:.7rem;color:var(--muted);font-family:var(--mono)">FTP: ${s.ip}:${s.ftpPort}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function openAddServer(){ document.getElementById('modal-server').classList.add('open'); }
+
+function toggleFtp(el){
+  document.getElementById('ftp-fields').style.display = el.checked?'flex':'none';
+}
+
+function addServer(){
+  const name=document.getElementById('sv-name').value.trim();
+  const ip=document.getElementById('sv-ip').value.trim();
+  const port=document.getElementById('sv-port').value.trim()||'25565';
+  const rcon=document.getElementById('sv-rcon').value.trim();
+  const useFtp=document.getElementById('sv-ftp').checked;
+  if(!name||!ip){ showToast('Nombre e IP son requeridos','error'); return; }
+  const servers=DB.get('servers')||[];
+  const s={id:Date.now(),name,ip,port,rcon,ftp:useFtp};
+  if(useFtp){
+    s.ftpUser=document.getElementById('sv-ftp-user').value;
+    s.ftpPass=document.getElementById('sv-ftp-pass').value;
+    s.ftpPort=document.getElementById('sv-ftp-port').value||'21';
+  }
+  servers.push(s);
+  DB.set('servers',servers);
+  closeModal('modal-server');
+  loadServersPage();
+  showToast('✅ Servidor "'+name+'" agregado','success');
+  addConsoleLog('success','[Panel] Servidor agregado: '+name+' ('+ip+':'+port+')');
+}
+
+function deleteServer(id){
+  if(!confirm('¿Eliminar este servidor?')) return;
+  const servers=(DB.get('servers')||[]).filter(s=>s.id!==id);
+  DB.set('servers',servers);
+  loadServersPage();
+  showToast('Servidor eliminado');
+}
+
+// ════════════════════════════════════════
+// PLUGINS
+// ════════════════════════════════════════
+function loadPluginsGrid(filter=''){
+  const plugins = DB.get('marketplace')||[];
+  const grid = document.getElementById('plugins-grid');
+  const list = filter ? plugins.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase())||p.desc.toLowerCase().includes(filter.toLowerCase())) : plugins;
+  const cats = {'optimization':'⚡','security':'🛡️','economy':'💰','gameplay':'🎮','admin':'⚙️','fun':'🎉'};
+  grid.innerHTML = list.map(p=>`
+    <div class="plugin-card">
+      <div class="plugin-card-header">
+        <div class="plugin-icon" style="background:${p.color}22">${p.icon}</div>
+        <div>
+          <div class="plugin-name">${p.name}</div>
+          <div class="plugin-author">por ${p.author} &nbsp;${cats[p.category]||''} ${p.category}</div>
+        </div>
+      </div>
+      <div class="plugin-desc">${p.desc}</div>
+      <div class="plugin-footer">
+        <span class="plugin-version">v${p.version}</span>
+        ${p.installed
+          ? `<button class="btn-install installed">✓ Instalado</button>`
+          : `<button class="btn-install install" onclick="openInstall(${p.id})">📥 Instalar</button>`
+        }
+      </div>
+    </div>
+  `).join('');
+  if(list.length===0) grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)">No se encontraron plugins</div>';
+}
+
+function filterPlugins(v){ loadPluginsGrid(v); }
+
+function openInstall(id){
+  const plugins=DB.get('marketplace')||[];
+  const p=plugins.find(x=>x.id===id);
+  if(!p) return;
+  installTarget=id;
+  document.getElementById('install-title').textContent='📥 Instalar '+p.name;
+  document.getElementById('install-desc').textContent=p.desc;
+  const vSel=document.getElementById('install-version');
+  vSel.innerHTML=p.versions.map(v=>`<option value="${v}">${v}</option>`).join('');
+  const sSel=document.getElementById('install-server');
+  const servers=DB.get('servers')||[];
+  if(servers.length===0){
+    sSel.innerHTML='<option value="">— Agrega un servidor primero —</option>';
+  } else {
+    sSel.innerHTML=servers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  }
+  document.getElementById('modal-install').classList.add('open');
+}
+
+function confirmInstall(){
+  if(!installTarget) return;
+  const plugins=DB.get('marketplace')||[];
+  const idx=plugins.findIndex(x=>x.id===installTarget);
+  const version=document.getElementById('install-version').value;
+  const serverSel=document.getElementById('install-server').value;
+  if(!serverSel){ showToast('Agrega un servidor primero','error'); return; }
+  plugins[idx].installed=true;
+  DB.set('marketplace',plugins);
+  closeModal('modal-install');
+  loadPluginsGrid();
+  showToast('✅ '+plugins[idx].name+' v'+version+' instalado en /plugins','success');
+  addConsoleLog('success','[Panel] Plugin instalado: '+plugins[idx].name+' v'+version);
+  addLog('info','Plugin instalado: '+plugins[idx].name+' v'+version);
+}
+
+// ════════════════════════════════════════
+// UPLOAD PLUGIN (ADMIN)
+// ════════════════════════════════════════
+function handleFileUpload(input){
+  const file=input.files[0];
+  if(!file) return;
+  if(!file.name.endsWith('.jar')){ showToast('Solo archivos .jar','error'); return; }
+  document.getElementById('up-filename').textContent=file.name;
+  document.getElementById('up-filesize').textContent=(file.size/1024).toFixed(1)+' KB';
+  document.getElementById('upload-preview').style.display='block';
+  document.getElementById('up-name').value=file.name.replace('.jar','');
+}
+
+function publishPlugin(){
+  const name=document.getElementById('up-name').value.trim();
+  const version=document.getElementById('up-version').value.trim();
+  const author=document.getElementById('up-author').value.trim();
+  const desc=document.getElementById('up-desc').value.trim();
+  const cat=document.getElementById('up-cat').value;
+  if(!name||!version||!author||!desc){ showToast('Completa todos los campos','error'); return; }
+  const plugins=DB.get('marketplace')||[];
+  const icons={optimization:'⚡',security:'🛡️',economy:'💰',gameplay:'🎮',admin:'⚙️',fun:'🎉'};
+  const colors={optimization:'#00b4d8',security:'#dc2626',economy:'#d97706',gameplay:'#7c3aed',admin:'#059669',fun:'#f59e0b'};
+  plugins.push({
+    id:Date.now(),name,author,desc,version,versions:[version],
+    category:cat,icon:icons[cat]||'📦',color:colors[cat]||'#64748b',installed:false
+  });
+  DB.set('marketplace',plugins);
+  loadPluginsGrid();
+  showToast('✅ "'+name+'" publicado en el marketplace','success');
+  addConsoleLog('success','[Panel] Plugin publicado: '+name+' v'+version+' por '+author);
+  // Reset form
+  ['up-name','up-version','up-author','up-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('upload-preview').style.display='none';
+}
+
+// ════════════════════════════════════════
+// USERS (ADMIN)
+// ════════════════════════════════════════
+function loadUsersTable(){
+  if(!currentUser||currentUser.role!=='admin') return;
+  const users=DB.get('users')||[];
+  const tbody=document.getElementById('users-table');
+  tbody.innerHTML=users.map(u=>`
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff">${u.username[0].toUpperCase()}</div>
+          <span style="font-weight:600">${u.username}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td><span class="badge ${u.role==='admin'?'purple':'blue'}">${u.role==='admin'?'👑 Admin':'👤 Usuario'}</span></td>
+      <td style="color:var(--muted)">${(u.servers||[]).length}</td>
+      <td style="color:var(--muted);font-size:.75rem">${u.created}</td>
+      <td>
+        <div class="user-row-actions">
+          ${u.role!=='admin'?`<button class="btn-sm" style="background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2);border-radius:5px;cursor:pointer;font-size:.72rem;padding:.25rem .6rem" onclick="promoteUser(${u.id})">Promover</button>`:''}
+          ${u.id!==currentUser.id?`<button class="btn-sm" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:5px;cursor:pointer;font-size:.72rem;padding:.25rem .6rem" onclick="deleteUser(${u.id})">Eliminar</button>`:''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function promoteUser(id){
+  const users=DB.get('users')||[];
+  const idx=users.findIndex(x=>x.id===id);
+  users[idx].role='admin';
+  DB.set('users',users);
+  loadUsersTable();
+  showToast('Usuario promovido a Admin','success');
+}
+
+function deleteUser(id){
+  if(!confirm('¿Eliminar este usuario?')) return;
+  const users=(DB.get('users')||[]).filter(x=>x.id!==id);
+  DB.set('users',users);
+  loadUsersTable();
+  showToast('Usuario eliminado');
+}
+
+// ════════════════════════════════════════
+// LOGS
+// ════════════════════════════════════════
+let currentLogFilter='all';
+
+function addLog(type,msg){
+  const logs=DB.get('logs')||[];
+  logs.unshift({time:new Date().toLocaleTimeString('es'),type,msg,server:'Mi Servidor'});
+  if(logs.length>100) logs.pop();
+  DB.set('logs',logs);
+  if(currentLogFilter==='all'||currentLogFilter===type) loadLogsTable(currentLogFilter);
+}
+
+function loadLogsTable(filter){
+  currentLogFilter=filter;
+  const logs=DB.get('logs')||[];
+  const filtered=filter==='all'?logs:logs.filter(l=>l.type===filter);
+  const colors={error:'red',warn:'yellow',info:'blue',hack:'purple'};
+  const labels={error:'ERROR',warn:'WARN',info:'INFO',hack:'HACK'};
+  const tbody=document.getElementById('logs-table');
+  tbody.innerHTML=filtered.map(l=>`
+    <tr>
+      <td style="font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap">${l.time}</td>
+      <td><span class="badge ${colors[l.type]||'blue'}">${labels[l.type]||l.type}</span></td>
+      <td style="font-size:.8rem">${l.msg}</td>
+      <td style="font-size:.75rem;color:var(--muted)">${l.server}</td>
+    </tr>
+  `).join('');
+  if(filtered.length===0) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.5rem">Sin logs</td></tr>';
+}
+
+function filterLogs(f){ loadLogsTable(f); }
+
+// ════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════
+function saveAccount(){
+  const users=DB.get('users')||[];
+  const idx=users.findIndex(x=>x.id===currentUser.id);
+  users[idx].username=document.getElementById('s-uname').value||users[idx].username;
+  users[idx].email=document.getElementById('s-email').value||users[idx].email;
+  const np=document.getElementById('s-pass').value;
+  if(np.length>=6) users[idx].password=np;
+  DB.set('users',users);
+  currentUser=users[idx];
+  document.getElementById('topbar-uname').textContent=currentUser.username;
+  document.getElementById('avatar-text').textContent=currentUser.username[0].toUpperCase();
+  showToast('✅ Cuenta actualizada','success');
+}
+
+function saveSettings(){ showToast('✅ Configuración guardada','success'); }
+function testConn(){
+  const ip=document.getElementById('s-api').value;
+  if(!ip){ showToast('Ingresa la IP del servidor','error'); return; }
+  showToast('Conectando a '+ip+'...','success');
+  setTimeout(()=>showToast('✅ Conexión exitosa con el servidor','success'),1500);
+}
+
+// ════════════════════════════════════════
+// QUICK ACTIONS
+// ════════════════════════════════════════
+function quickAction(a){
+  const msgs={
+    clean:'🧹 Limpieza forzada iniciada — eliminando ítems y entidades',
+    gc:'🔧 Garbage Collector forzado — liberando RAM',
+    chunks:'📦 Chunks inactivos liberados',
+    report:'📊 Reporte generado en /plugins/AdvancedAntiLagg/reports/',
+  };
+  showToast(msgs[a]||'Acción ejecutada','success');
+  addConsoleLog('success','[AdvancedAntiLagg] '+msgs[a]);
+  addLog('info',msgs[a]);
+  if(a==='clean') cleanCount++;
+}
+
+// ════════════════════════════════════════
+// MODAL / TOAST
+// ════════════════════════════════════════
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  const icon={success:'✅',error:'❌','':'ℹ️'}[type]||'ℹ️';
+  document.getElementById('toast-msg').textContent=msg;
+  t.querySelector('.t-icon').textContent=icon;
+  t.className='toast show '+(type||'');
+  setTimeout(()=>t.className='toast',3500);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+initDB();
+// Auto-login if session exists
+const sid=DB.get('session');
+if(sid){
+  const users=DB.get('users')||[];
+  const u=users.find(x=>x.id===sid);
+  if(u){ currentUser=u; enterApp(); }
+}
+</script>
+</body>
+</html>
